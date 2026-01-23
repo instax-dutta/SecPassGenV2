@@ -21,7 +21,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: `${APP_NAME} - Secure Password Generator`,
+    default: APP_NAME,
     template: `%s | ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
@@ -97,6 +97,9 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   category: 'security',
+  other: {
+    'og:logo': 'https://passwords.sdad.pro/logo.png',
+  }
 }
 
 export default function RootLayout({

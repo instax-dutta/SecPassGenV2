@@ -31,7 +31,13 @@ export default function Home() {
     // Fetch initial stats
     fetchStats()
 
-    return () => { lenis.destroy() }
+    // Poll for stats every 15 seconds
+    const interval = setInterval(fetchStats, 15000)
+
+    return () => {
+      lenis.destroy()
+      clearInterval(interval)
+    }
   }, [])
 
   const fetchStats = async () => {
