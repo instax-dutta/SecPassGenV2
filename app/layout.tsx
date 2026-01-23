@@ -12,6 +12,7 @@ const MAIN_DOMAIN = 'https://sdad.pro';
 
 export const viewport: Viewport = {
   themeColor: '#000000',
+  colorScheme: 'dark',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -42,9 +43,15 @@ export const metadata: Metadata = {
   referrer: 'origin-when-cross-origin',
   creator: 'SDAD',
   publisher: 'SDAD',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   robots: {
     index: true,
     follow: true,
+    nocache: true,
     googleBot: {
       index: true,
       follow: true,
@@ -68,7 +75,7 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: `${APP_NAME} - Generate Secure Passwords`,
+        alt: `${APP_NAME} - Professional Secure Password Generator`,
       },
     ],
   },
@@ -81,7 +88,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.ico', sizes: '72x72' },
       { url: '/icon.svg', type: 'image/svg+xml' },
     ],
     apple: [
@@ -89,7 +96,7 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/manifest.json',
-  category: 'technology',
+  category: 'security',
 }
 
 export default function RootLayout({
@@ -109,7 +116,7 @@ export default function RootLayout({
               name: APP_NAME,
               description: APP_DESCRIPTION,
               url: APP_URL,
-              applicationCategory: 'UtilityApplication',
+              applicationCategory: 'SecurityApplication',
               operatingSystem: 'Any',
               offers: {
                 '@type': 'Offer',
