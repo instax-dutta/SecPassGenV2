@@ -120,7 +120,7 @@ export default function Home() {
               </motion.div>
 
               <div className="scale-95 sm:scale-100 origin-top">
-                <PasswordGenerator isDarkMode={isDarkMode} />
+                <PasswordGenerator isDarkMode={isDarkMode} onGenerate={fetchStats} />
               </div>
 
               <motion.div
