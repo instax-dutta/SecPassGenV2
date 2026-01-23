@@ -18,7 +18,6 @@ interface PasswordGeneratorProps {
 export default function PasswordGenerator({ isDarkMode, onGenerate }: PasswordGeneratorProps) {
   const [passwords, setPasswords] = useState<string[]>([])
   const [length, setLength] = useState(16)
-  const [count, setCount] = useState(1)
   const [includeUppercase, setIncludeUppercase] = useState(true)
   const [includeLowercase, setIncludeLowercase] = useState(true)
   const [includeNumbers, setIncludeNumbers] = useState(true)
@@ -37,7 +36,7 @@ export default function PasswordGenerator({ isDarkMode, onGenerate }: PasswordGe
         },
         body: JSON.stringify({
           length,
-          count,
+          count: 1,
           includeUppercase,
           includeLowercase,
           includeNumbers,
@@ -59,7 +58,7 @@ export default function PasswordGenerator({ isDarkMode, onGenerate }: PasswordGe
         await addToHistory(data.passwords[0], length)
       }
 
-      toast.success(`Generated ${data.passwords.length} password${data.passwords.length > 1 ? 's' : ''}`)
+      toast.success('Generated new password')
       if (onGenerate) onGenerate()
     } catch (error) {
       toast.error('Network error')
@@ -108,40 +107,38 @@ export default function PasswordGenerator({ isDarkMode, onGenerate }: PasswordGe
                 <span className="text-sm">Generate a password to begin</span>
               </motion.div>
             ) : (
-              passwords.map((password, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex items-center gap-2 group"
-                >
-                  <Input
-                    type="text"
-                    value={password}
-                    readOnly
-                    className={`font-mono text-base border-2 transition-all duration-300 ${isDarkMode
-                      ? 'bg-white/5 text-white border-white/10 hover:border-white/20 focus:border-white/30'
-                      : 'bg-black/5 text-black border-black/10 hover:border-black/20 focus:border-black/30'
+              <motion.div
+                key="result"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className="flex items-center gap-2 group"
+              >
+                <Input
+                  type="text"
+                  value={passwords[0]}
+                  readOnly
+                  className={`font-mono text-base border-2 transition-all duration-300 ${isDarkMode
+                    ? 'bg-white/5 text-white border-white/10 hover:border-white/20 focus:border-white/30'
+                    : 'bg-black/5 text-black border-black/10 hover:border-black/20 focus:border-black/30'
+                    }`}
+                />
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    onClick={() => copyToClipboard(passwords[0], 0)}
+                    size="lg"
+                    className={`transition-all duration-300 ${copiedIndex === 0
+                      ? 'bg-green-500 hover:bg-green-600 text-white'
+                      : isDarkMode
+                        ? 'bg-white text-black hover:bg-white/90'
+                        : 'bg-black text-white hover:bg-black/90'
                       }`}
-                  />
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button
-                      onClick={() => copyToClipboard(password, index)}
-                      size="lg"
-                      className={`transition-all duration-300 ${copiedIndex === index
-                        ? 'bg-green-500 hover:bg-green-600 text-white'
-                        : isDarkMode
-                          ? 'bg-white text-black hover:bg-white/90'
-                          : 'bg-black text-white hover:bg-black/90'
-                        }`}
-                    >
-                      {copiedIndex === index ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                  </motion.div>
+                  >
+                    {copiedIndex === 0 ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
                 </motion.div>
-              ))
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
@@ -165,7 +162,7 @@ export default function PasswordGenerator({ isDarkMode, onGenerate }: PasswordGe
             ) : (
               <>
                 <RefreshCw className="mr-2 h-5 w-5" />
-                Generate Password{count > 1 ? 's' : ''}
+                Generate Password
               </>
             )}
           </Button>
@@ -195,29 +192,6 @@ export default function PasswordGenerator({ isDarkMode, onGenerate }: PasswordGe
           </div>
         </div>
 
-        {/* Count Slider */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-3">
-            <label className={`text-sm font-semibold ${isDarkMode ? 'text-white/70' : 'text-black/70'}`}>
-              Quantity
-            </label>
-            <span className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
-              {count}
-            </span>
-          </div>
-          <Slider
-            value={[count]}
-            onValueChange={(value) => setCount(value[0])}
-            max={10}
-            min={1}
-            step={1}
-            className="w-full"
-          />
-          <div className="flex justify-between mt-1">
-            <span className={`text-xs ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>1</span>
-            <span className={`text-xs ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>10</span>
-          </div>
-        </div>
 
         {/* Character Options */}
         <div className="grid grid-cols-2 gap-4">
