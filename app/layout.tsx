@@ -1,11 +1,21 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 
+const inter = Inter({ subsets: ['latin'] })
+
 const APP_NAME = 'SecPassGen Pro';
 const APP_DESCRIPTION = 'Generate cryptographically secure, unique passwords that are never repeated. Professional password generator with database-backed uniqueness verification.';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://passwords.sdad.pro';
-const MAIN_DOMAIN = process.env.NEXT_PUBLIC_MAIN_DOMAIN || 'https://sdad.pro';
+const APP_URL = 'https://passwords.sdad.pro';
+const MAIN_DOMAIN = 'https://sdad.pro';
+
+export const viewport: Viewport = {
+  themeColor: '#000000',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
@@ -44,18 +54,18 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: APP_URL,
+    canonical: '/',
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: APP_URL,
+    url: '/',
     title: `${APP_NAME} - Secure Password Generator`,
     description: APP_DESCRIPTION,
     siteName: APP_NAME,
     images: [
       {
-        url: `${APP_URL}/og-image.png`,
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: `${APP_NAME} - Generate Secure Passwords`,
@@ -66,7 +76,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `${APP_NAME} - Secure Password Generator`,
     description: APP_DESCRIPTION,
-    images: [`${APP_URL}/og-image.png`],
+    images: ['/og-image.png'],
     creator: '@sdad_pro',
   },
   icons: {
@@ -79,9 +89,6 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/manifest.json',
-  verification: {
-    google: 'google-site-verification-code', // Add your verification code
-  },
   category: 'technology',
 }
 
@@ -91,14 +98,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -129,7 +130,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body style={{ fontFamily: "'Inter', sans-serif" }}>
+      <body className={inter.className}>
         {children}
         <Toaster />
       </body>
