@@ -1,53 +1,46 @@
-# SecPassGen Pro - Architecture
+# SecPassGen Pro - Architecture (V2.0.0)
 
 ## System Overview
-Next.js 14 app with NeonDB PostgreSQL. Generates cryptographically secure passwords with database-backed uniqueness verification.
+Secure password utility built with Next.js 14 and NeonDB. Prioritizes cryptographic randomness, global uniqueness, and zero-knowledge privacy.
 
 ## Core Components
 
 ### Frontend (`/app`, `/components`)
-- **page.tsx**: Main UI with Lenis smooth scroll + Framer Motion
-- **PasswordGenerator**: Password generation with API calls
-- **PasswordHistory**: Encrypted local history (AES-256)
-- **AnimatedBackground**: Visual effects
+- **page.tsx**: Viewport-optimized layout. Forced dark mode.
+- **PasswordGenerator**: Single-password focal point. API integration.
+- **PasswordHistory**: AES-GCM encrypted local storage. 24h expiry.
+- **AnimatedBackground**: GPU-accelerated particle system with connections.
 
 ### Backend (`/app/api`)
-- **POST /api/generate**: Password generation + uniqueness check
-- **GET /api/stats**: Global statistics
+- **/api/generate**: Batch generation with batch DB verification.
+- **/api/stats**: Global generation metrics.
+- **Resilience**: Automatic fallback to local generation on DB timeout.
 
 ### Database (`/lib/db.ts`)
-- **generated_passwords**: Stores SHA-256 hashes
-- **generation_stats**: Tracks total count
-- Uses NeonDB serverless driver
+- **public.generated_passwords**: Anonymized SHA-256 signatures.
+- **public.generation_stats**: Atomic counter for global usage.
+- Uses NeonDB serverless driver with schema qualification.
 
-### Security (`/lib/passwordHistory.ts`)
-- Client-side AES-256 encryption
-- Device-specific keys
-- Auto-expires 24h
-- Never sends to server
+### Security Architecture
+- **Web Crypto API**: Primary entropy source for generation.
+- **Local Encryption**: Client-side AES-GCM using device-specific signatures.
+- **Privacy**: No plain text storage. IP hashing. No analytics tracking.
 
 ## Data Flow
-1. User clicks generate
-2. API generates password with crypto.getRandomValues()
-3. SHA-256 hash checked against DB
-4. If unique, stored + returned
-5. Client encrypts + stores in localStorage
-6. Stats updated via trigger
+1. **Request**: UI sends config (length, charsets) to API.
+2. **Generation**: API generates candidate batch using PRNG.
+3. **Verification**: Batch SHA-256 check against DB `generated_passwords`.
+4. **Persistence**: New signature stored; DB stats counter incremented.
+5. **Return**: Unique secure password returned to client.
+6. **History**: Client encrypts password locally and updates sidebar.
 
 ## Tech Stack
-- Next.js 14 (App Router)
-- TypeScript
-- NeonDB (PostgreSQL)
-- Tailwind + Radix UI
-- Framer Motion + Lenis
-- Web Crypto API
+- **Engine**: Next.js 14 (App Router)
+- **Persistence**: NeonDB (PostgreSQL)
+- **Visuals**: Tailwind CSS, Framer Motion, Lenis
+- **Security**: SubtleCrypto (Web Crypto API)
+- **Deployment**: Vercel Serverless
 
-## Environment
-```
-DATABASE_URL=postgresql://...
-NEXT_PUBLIC_APP_URL=https://passwords.sdad.pro
-NEXT_PUBLIC_MAIN_DOMAIN=https://sdad.pro
-```
-
-## Deployment
-Vercel (serverless) + NeonDB (pooled connection)
+## Key Endpoints
+- `POST /api/generate`: `{length, includeUppercase, ...}` -> `{passwords: []}`
+- `GET /api/stats`: -> `{totalGenerated: 0}`

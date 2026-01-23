@@ -1,78 +1,61 @@
 # SecPassGen Pro 🔐
 
-> **Enterprise-grade password generator** with guaranteed uniqueness, military-grade encryption, and seamless UX.
+> **Institutional-grade password security** with guaranteed uniqueness, client-side encryption, and a polished monochrome aesthetic.
 
-[![Open Source](https://img.shields.io/badge/Open%20Source-💚-success)](https://github.com/yourusername/SecPassGenV2)
+[![Open Source](https://img.shields.io/badge/Open%20Source-🖤-success)](https://github.com/instax-dutta/SecPassGenV2)
 [![AI Ready](https://img.shields.io/badge/AI%20Ready-🤖-blue)](/.agent)
-[![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-orange)](CONTRIBUTING.md)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-lightgrey)](https://passwords.sdad.pro)
 
-🔗 **Live:** [passwords.sdad.pro](https://passwords.sdad.pro)  
-🌐 **Powered by:** [SDAD.pro](https://sdad.pro)
+🔗 **App URL:** [passwords.sdad.pro](https://passwords.sdad.pro)  
+🌐 **Main Domain:** [SDAD.pro](https://sdad.pro)
 
 ---
 
 ## ✨ Features
 
-- 🔐 **Cryptographically Secure** - Uses Web Crypto API
-- ✨ **Guaranteed Unique** - Database-backed verification
-- 🔒 **Encrypted History** - AES-256 local storage
-- ⚡ **Buttery Smooth** - Lenis scroll + Framer Motion
-- 🎨 **Monochrome Perfection** - Pure black/white theme
-- 📱 **Fully Responsive** - Works everywhere
-- 🤖 **AI-Ready** - Complete `.toon` documentation in `.agent/`
+- 🔐 **Cryptographically Secure** - High-entropy generation via Web Crypto API (PRNG).
+- 🛡️ **Guaranteed Unique** - Cross-referenced against anonymized database hashes.
+- 🔒 **AES-256 Local History** - Encrypted locally in your browser; auto-expires in 24h.
+- ⚡ **Performance Optimized** - Batch generation with resilient database fallbacks.
+- 🎨 **Monochrome Aesthetic** - Sophisticated black/white design with premium animations.
+- 🤖 **AI-First Documentation** - Token-optimized `.toon` architecture for AI agents.
+- 📱 **Viewport Perfect** - Compact layout designed to fit perfectly in a single viewport.
+- 🔍 **SEO & AI Ready** - Built-in sitemap, robots.txt, and AI agent crawler support.
 
 ---
 
 ## 🚀 Quick Start
 
-```bash
-# Clone
-git clone https://github.com/yourusername/SecPassGenV2.git
-cd SecPassGenV2
+### Local Development
 
-# Install
-npm install --legacy-peer-deps
+1. **Clone & Install**
+   ```bash
+   git clone https://github.com/instax-dutta/SecPassGenV2.git
+   cd SecPassGenV2
+   npm install --legacy-peer-deps
+   ```
 
-# Setup DB (run schema.sql in NeonDB console)
-# Add .env.local with DATABASE_URL
+2. **Database Setup (NeonDB)**
+   - Run `schema.sql` in your [NeonDB Console](https://console.neon.tech).
+   - Create `.env.local` using `.env.example`.
+   ```env
+   DATABASE_URL=your_postgresql_url
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
+   NEXT_PUBLIC_MAIN_DOMAIN=https://sdad.pro
+   ```
 
-# Run
-npm run dev
-```
-
-Visit `http://localhost:3000`
-
----
-
-## 🗄️ Database Setup
-
-1. Go to [console.neon.tech](https://console.neon.tech)
-2. Open SQL Editor
-3. Run `schema.sql`
-4. Copy connection string to `.env.local`:
-
-```env
-DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_MAIN_DOMAIN=https://sdad.pro
-```
+3. **Launch**
+   ```bash
+   npm run dev
+   ```
 
 ---
 
-## 🤖 AI-Ready Codebase
+## 🏗️ Architecture (AI-Ready)
 
-This project is **optimized for AI agents**. All architecture, patterns, and implementation details are documented in `.toon` format in the `.agent/` directory.
-
-**For AI Agents:**
-- Read `.agent/architecture.toon` for system overview
-- Read `.agent/codebase.toon` for implementation details
-- All docs use minimal tokens for maximum context
-
-**For Humans:**
-- Standard Next.js 14 app
-- TypeScript + Tailwind
-- Framer Motion + Lenis
-- NeonDB PostgreSQL
+This project is built for **human-AI collaboration**. All system specifications are located in the `.agent/` folder:
+- `architecture.toon`: High-level system design and data flow.
+- `codebase.toon`: Implementation patterns, core modules, and patterns.
 
 ---
 
@@ -80,77 +63,36 @@ This project is **optimized for AI agents**. All architecture, patterns, and imp
 
 - **Framework:** Next.js 14 (App Router)
 - **Database:** NeonDB (PostgreSQL)
-- **Styling:** Tailwind CSS
-- **UI:** Radix UI + shadcn/ui
-- **Animation:** Framer Motion + Lenis
-- **Language:** TypeScript
+- **Animations:** Framer Motion + Lenis (Smooth Scroll)
+- **Styling:** Tailwind CSS + Radix UI
+- **Security:** Web Crypto API + Subkey Encryption
+- **SEO/Metadata:** Next.js Metadata API + JSON-LD
 
 ---
 
 ## 🤝 Contributing
 
-**We welcome vibe coders!** 🎉
+We welcome professional contributions! Whether it's security audits, design refinements, or performance tweaks.
 
-This is an open-source project. Feel free to:
-- 🐛 Report bugs
-- 💡 Suggest features
-- 🔧 Submit PRs
-- 🎨 Improve design
-- 📝 Fix typos
-
-**No contribution is too small.**
-
-### How to Contribute
-
-1. Fork the repo
-2. Create a branch (`git checkout -b feature/amazing`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push (`git push origin feature/amazing`)
-5. Open a PR
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit with concise messages.
+4. Push and open a Pull Request.
 
 ---
 
-## 📊 API Endpoints
+## 📊 Performance & Privacy
 
-### `POST /api/generate`
-Generate unique passwords
-
-```json
-{
-  "length": 16,
-  "count": 1,
-  "includeUppercase": true,
-  "includeLowercase": true,
-  "includeNumbers": true,
-  "includeSymbols": true
-}
-```
-
-### `GET /api/stats`
-Get generation statistics
-
----
-
-## 🔐 Security
-
-- ✅ No plain text storage
-- ✅ SHA-256 password hashing
-- ✅ AES-256 history encryption
-- ✅ IP hashing for privacy
-- ✅ Rate limiting ready
-- ✅ HTTPS enforced
+- **Zero-Logging**: Passwords never touch our servers in plain text.
+- **Anonymization**: IP addresses and password signatures are irreversibly hashed.
+- **Resilience**: API handles database latency with automatic local fallback.
+- **Speed**: Optimized bundle size with Next.js image and CSS optimization.
 
 ---
 
 ## 📄 License
 
-MIT - Use freely for personal or commercial projects.
-
----
-
-## 🙏 Credits
-
-Built with ❤️ by the community  
+MIT - Developed by the community for a secure web.  
 Powered by [SDAD.pro](https://sdad.pro)
 
 ---

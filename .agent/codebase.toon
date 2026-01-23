@@ -1,107 +1,60 @@
-# SecPassGen Pro - Codebase Reference
+# SecPassGen Pro - Codebase Reference (V2.0.0)
 
-## File Structure
+## Directory Structure
 ```
 /app
-  /api/generate/route.ts - Password generation API
-  /api/stats/route.ts - Statistics API
-  layout.tsx - Root layout with metadata
-  page.tsx - Main page with Lenis + Framer Motion
-  globals.css - Monochrome theme + animations
+  /api/generate/route.ts   - Batch logic with DB fallback
+  /api/stats/route.ts      - Global counter API
+  /privacy/page.tsx        - SEO-optimized security disclosure
+  /terms/page.tsx          - Authority-focused usage terms
+  layout.tsx               - Metadata & Viewport API implementation
+  page.tsx                 - Viewport-locked hero & generator orchestrator
+  globals.css              - Performance-tuned CSS & Scroll/GPU utils
   
 /components
-  PasswordGenerator.tsx - Main generator UI
-  PasswordHistory.tsx - Encrypted history sidebar
-  AnimatedBackground.tsx - Visual effects
-  CustomCheckbox.tsx - Styled checkboxes
-  StrengthMeter.tsx - Password strength display
+  PasswordGenerator.tsx    - Simplified single-output generator
+  PasswordHistory.tsx      - Encrypted sidebar (localStorage)
+  AnimatedBackground.tsx   - Connected particle network (GPU)
+  CustomCheckbox.tsx       - Monochrome theme inputs
   
 /lib
-  db.ts - NeonDB utilities (hash, store, verify)
-  passwordHistory.ts - AES-256 encryption for local storage
+  db.ts                    - SQL utilities with schema qualification
+  passwordHistory.ts       - AES-GCM Subkey encryption logic
   
 /public
-  logo.png - App logo
-  og-image.png - Social media image
+  robots.txt               - AI-agent multi-bot configuration
+  sitemap.ts               - Dynamic sitemap generation
+  manifest.json            - PWA & Branding configuration
 ```
 
-## Key Patterns
+## Implementation Patterns
 
-### Password Generation
-```typescript
-// Uses crypto.getRandomValues() for true randomness
-const array = new Uint32Array(length);
-crypto.getRandomValues(array);
-```
+### Resilient Batch Generation
+The system avoids infinite loops and DB timeouts by generating candidates in batches and falling back to local uniqueness if the database is unresponsive (>10s).
 
-### Uniqueness Check
-```typescript
-// SHA-256 hash before DB check
-const hash = await hashPassword(password);
-const isUnique = await isPasswordUnique(hash);
-```
+### Monochrome Styling System
+Uses CSS variables for theme stability:
+- **Background**: Pure `#000` (Dark) / `#FFF` (Light)
+- **Glassmorphism**: `backdrop-blur-xl` + `white/5` or `black/5` fills.
+- **Micro-interactions**: Framer Motion with `[0.16, 1, 0.3, 1]` cubic-bezier.
 
-### History Encryption
+### Secure Local Persistence
 ```typescript
-// Device-specific key from browser fingerprint
+// Subkey generation via device-specific fingerprint
 const key = await getEncryptionKey();
-const encrypted = await crypto.subtle.encrypt({name: 'AES-GCM', iv}, key, data);
+// AES-GCM encryption with 24-hour TTL check upon retrieval
 ```
 
-### Animations
-```typescript
-// Framer Motion with custom easing
-<motion.div
-  initial={{ y: 20, opacity: 0 }}
-  animate={{ y: 0, opacity: 1 }}
-  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-/>
-```
+## SEO & AI Readiness
+- **Metadata API**: Fully compliant with Next.js 14 `Metadata` and `Viewport` types.
+- **AI Crawling**: `robots.txt` explicitly allows GPTBot, ClaudeBot, and others.
+- **Structured Data**: JSON-LD `WebApplication` schema injected for indexing.
 
-## Database Schema
-```sql
-CREATE TABLE generated_passwords (
-  id UUID PRIMARY KEY,
-  password_hash TEXT UNIQUE,
-  length INTEGER,
-  charset_config JSONB,
-  created_at TIMESTAMP,
-  ip_hash TEXT
-);
+## Database Schema Highlights
+- **Indexes**: `password_hash` (Unique), `created_at` (DESC).
+- **Public Schema**: All queries explicitly prefixed `public.` to prevent search-path issues.
 
-CREATE TABLE generation_stats (
-  total_generated BIGINT,
-  last_updated TIMESTAMP
-);
-```
-
-## API Contracts
-
-### POST /api/generate
-Request: `{length, count, includeUppercase, includeLowercase, includeNumbers, includeSymbols}`
-Response: `{passwords: string[], count: number, message: string}`
-
-### GET /api/stats
-Response: `{totalGenerated: number, lastUpdated: string}`
-
-## Security Measures
-- Parameterized queries (SQL injection prevention)
-- SHA-256 password hashing
-- AES-256 history encryption
-- IP hashing for privacy
-- No plain text storage
-- HTTPS enforced
-
-## Performance
-- Database indexes on password_hash, created_at
-- Connection pooling (NeonDB)
-- Client-side caching (localStorage)
-- Optimistic UI updates
-- Lazy loading components
-
-## Monochrome Theme
-Pure black (#000) / white (#FFF) with opacity variations
-- Dark: bg-black, text-white
-- Light: bg-white, text-black
-- Borders: white/10 or black/10
-- Hover: white/20 or black/20
+## State Management
+- **Theme**: `next-themes` (Dark mode forced by default).
+- **History**: Local storage events for cross-tab synchronization.
+- **Stats**: 15s polling + immediate generation callbacks.

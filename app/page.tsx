@@ -13,7 +13,6 @@ import Image from 'next/image'
 
 export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(true)
-  const [stats, setStats] = useState<{ totalGenerated: number } | null>(null)
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -28,29 +27,10 @@ export default function Home() {
 
     requestAnimationFrame(raf)
 
-    // Fetch initial stats
-    fetchStats()
-
-    // Poll for stats every 15 seconds
-    const interval = setInterval(fetchStats, 15000)
-
     return () => {
       lenis.destroy()
-      clearInterval(interval)
     }
   }, [])
-
-  const fetchStats = async () => {
-    try {
-      const response = await fetch('/api/stats')
-      if (response.ok) {
-        const data = await response.json()
-        setStats(data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch stats:', error)
-    }
-  }
 
   const bgClass = isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
   const borderClass = isDarkMode ? 'border-white/5' : 'border-black/5'
@@ -126,7 +106,7 @@ export default function Home() {
               </motion.div>
 
               <div className="scale-95 sm:scale-100 origin-top">
-                <PasswordGenerator isDarkMode={isDarkMode} onGenerate={fetchStats} />
+                <PasswordGenerator isDarkMode={isDarkMode} />
               </div>
 
               <motion.div
@@ -163,18 +143,9 @@ export default function Home() {
         transition={{ duration: 0.8, delay: 1 }}
         className={`relative z-20 w-full border-t transition-colors duration-700 ${borderClass} backdrop-blur-xl`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <TrendingUp className={`h-3.5 w-3.5 ${isDarkMode ? 'text-white/40' : 'text-black/40'}`} />
-              <span className={`text-[10px] sm:text-xs font-medium ${isDarkMode ? 'text-white/40' : 'text-black/40'}`}>
-                TOTAL GENERATED:
-                <span className={`ml-1.5 font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                  {stats ? stats.totalGenerated.toLocaleString() : '...'}
-                </span>
-              </span>
-            </div>
-            <nav className="hidden sm:flex items-center gap-4 text-[10px] uppercase tracking-widest font-semibold">
+            <nav className="flex items-center gap-6 text-[10px] uppercase tracking-widest font-bold">
               <Link href="/privacy" className={`${isDarkMode ? 'text-white/30 hover:text-white' : 'text-black/30 hover:text-black'} transition-colors`}>Privacy</Link>
               <Link href="/terms" className={`${isDarkMode ? 'text-white/30 hover:text-white' : 'text-black/30 hover:text-black'} transition-colors`}>Terms</Link>
             </nav>

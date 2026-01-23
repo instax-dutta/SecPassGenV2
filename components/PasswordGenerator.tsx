@@ -12,10 +12,9 @@ import CustomCheckbox from './CustomCheckbox'
 
 interface PasswordGeneratorProps {
   isDarkMode: boolean
-  onGenerate?: () => void
 }
 
-export default function PasswordGenerator({ isDarkMode, onGenerate }: PasswordGeneratorProps) {
+export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps) {
   const [passwords, setPasswords] = useState<string[]>([])
   const [length, setLength] = useState(16)
   const [includeUppercase, setIncludeUppercase] = useState(true)
@@ -59,7 +58,6 @@ export default function PasswordGenerator({ isDarkMode, onGenerate }: PasswordGe
       }
 
       toast.success('Generated new password')
-      if (onGenerate) onGenerate()
     } catch (error) {
       toast.error('Network error')
       console.error('Generation error:', error)
