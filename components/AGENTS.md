@@ -1,0 +1,51 @@
+# components
+
+## Purpose
+
+First-party UI. Everything a visitor sees and touches.
+
+## Ownership
+
+- Owns presentation and client-side interaction for the generator, the history sidebar, the animated background, and the custom checkbox.
+- Does not own generation logic. See `../app/api/AGENTS.md`.
+- Does not own persistence. See `../lib/AGENTS.md`.
+- Does not own the vendored primitive set. See `ui/AGENTS.md`.
+
+## Local Contracts
+
+- Every first-party component takes `isDarkMode: boolean` as a prop and derives its own colours from it. Theme is passed down, never read from context.
+- `PasswordGenerator` is the only caller of `POST /api/generate` and always requests `count: 1`.
+- `PasswordGenerator` pushes every password it accepts into the encrypted history via `addToHistory`.
+- `PasswordHistory` renders nothing when `isHistoryAvailable()` returns false, so browsers lacking `crypto.subtle` lose the sidebar silently instead of erroring.
+- The history sidebar is `hidden lg:block`, so below the large breakpoint there is no history UI at all. That is a product gap, not a styling detail.
+
+### The generator mirrors the server floor
+
+`PasswordGenerator` computes `minimumLengthForFlags` from the current checkbox selection and uses it as the slider's `min`, raising the current length when the selection shrinks the alphabet. This exists so the control never offers a configuration the API will refuse with a 400. The floor itself is defined once in `lib/entropy.ts`; the UI must not hardcode 60.
+
+The component also keeps one `SessionDedup` instance in a ref and retries up to `MAX_GENERATION_ATTEMPTS` times, admitting a password only once. See `../lib/AGENTS.md` for why that is a courtesy rather than the uniqueness mechanism.
+
+### Conventions
+
+- Cards are `rounded-2xl` with `backdrop-blur-xl`, a `bg-white/5` or `bg-black/5` fill, and a `border-white/10` or `border-black/10` border.
+- Motion easing is the cubic bezier `[0.16, 1, 0.3, 1]`, with durations between 0.3 and 0.8 seconds.
+
+## Work Guidance
+
+- User-facing notifications go through `sonner`, whose `Toaster` is already mounted in `app/layout.tsx`. Do not add a second notification system.
+- Clipboard writes go through `navigator.clipboard.writeText` and must be wrapped in try/catch.
+- Do not call `crypto.getRandomValues` from these components. Entropy belongs in `app/api/generate`.
+
+### Dead code currently in this directory
+
+- `StrengthMeter.tsx` is not imported anywhere. Delete it or wire it into `PasswordGenerator`.
+- `TrendingUp` is imported but unused in `app/page.tsx`.
+- `ExternalLink` is imported but unused in `app/page.tsx`.
+
+`AnimatedBackground.tsx` binds explicitly typed `surface` and `context` aliases for the canvas because TypeScript narrows a `const` inside arrow closures but not inside a class body. Keep that indirection. It also registers a named `onResize` handler and removes that same reference on cleanup; an inline arrow listener cannot be removed and leaked one handler per theme toggle.
+
+## Verification
+
+## Child DOX Index
+
+- `ui/AGENTS.md` - Vendored shadcn/Radix primitives, their local deviations, and the unused ones
