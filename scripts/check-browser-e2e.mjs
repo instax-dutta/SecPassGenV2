@@ -111,6 +111,22 @@ const pw4 = await input.inputValue()
 ok(/^[0-9]+$/.test(pw4), `digits-only produced a password with non-digits: ${pw4}`)
 ok(pw4.length === await shownLength(), `digits-only password is ${pw4.length} but slider reads ${await shownLength()}`)
 
+// --- the central claim: the number the user actually reads is zero --------
+// The counter on screen is the trust instrument. Asserting only on captured
+// egress misses same-origin fetch traffic such as Next.js route prefetching,
+// which is exactly what once made the readout show 2 while the page claimed
+// nothing was sent.
+const counter = page.locator('dd', { hasText: /^\d+$/ }).first()
+const counterText = (await counter.innerText()).trim()
+ok(counterText === '0', `the displayed request counter must read 0, it reads "${counterText}"`)
+
+const dataRequests = await page.evaluate(() =>
+  performance.getEntriesByType('resource')
+    .filter((e) => e.initiatorType === 'fetch' || e.initiatorType === 'xmlhttprequest')
+    .map((e) => e.name)
+)
+ok(dataRequests.length === 0, `the page still issues data requests: ${dataRequests.join(', ')}`)
+
 // --- the central claim: nothing left the browser ----------------------------
 ok(egress.length === 0, `the page made external network requests: ${egress.join(', ')}`)
 ok(egress.filter((e) => e.includes('/api/')).length === 0,

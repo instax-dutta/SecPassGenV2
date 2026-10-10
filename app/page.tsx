@@ -70,7 +70,7 @@ export default function Home() {
         className={`relative z-20 w-full border-b backdrop-blur-xl ${borderClass}`}
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6">
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" prefetch={false} className="flex items-center gap-2.5">
             <span className="relative h-6 w-6 sm:h-7 sm:w-7">
               <Image src="/logo.png" alt="" fill className="object-contain" priority />
             </span>
@@ -139,6 +139,7 @@ export default function Home() {
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={false}
                 className={`text-[10px] uppercase tracking-[0.16em] transition-colors ${
                   isDarkMode ? 'text-white/60 hover:text-white/90' : 'text-black/60 hover:text-black/90'
                 }`}
@@ -151,6 +152,7 @@ export default function Home() {
             href="https://sdad.pro"
             target="_blank"
             rel="noopener noreferrer"
+            prefetch={false}
             className={`text-[10px] uppercase tracking-[0.16em] transition-colors ${
               isDarkMode ? 'text-white/60 hover:text-white/85' : 'text-black/60 hover:text-black/85'
             }`}
