@@ -1,4 +1,10 @@
 import { neon } from '@neondatabase/serverless';
+import { hashIP, keyedHash, requireUniquenessSecret, resolveIpPepper } from './hashing.ts';
+
+// Re-exported so callers keep one import site for signing helpers. Imported
+// relatively, with an explicit extension, so this module stays loadable by the
+// verification scripts under scripts/ as well as by the Next bundler.
+export { hashIP, keyedHash, requireUniquenessSecret, resolveIpPepper } from './hashing.ts';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is not set');
@@ -6,63 +12,47 @@ if (!process.env.DATABASE_URL) {
 
 export const sql = neon(process.env.DATABASE_URL);
 
+export interface CharsetConfig {
+  uppercase: boolean;
+  lowercase: boolean;
+  numbers: boolean;
+  symbols: boolean;
+}
+
 export async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return keyedHash(password, requireUniquenessSecret());
 }
 
-export async function hashIP(ip: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(ip + process.env.IP_SALT || 'default-salt');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-export async function isPasswordUnique(passwordHash: string): Promise<boolean> {
-  try {
-    const result = await sql`
-      SELECT COUNT(*)::int as count 
-      FROM public.generated_passwords 
-      WHERE password_hash = ${passwordHash}
-    `;
-    return Number(result[0].count) === 0;
-  } catch (error) {
-    console.error('Error checking password uniqueness:', error);
-    throw error;
-  }
-}
-
-export async function savePassword(
+/**
+ * Records a password signature and reports whether it was new.
+ *
+ * One statement, not a probe followed by an insert. The previous
+ * isPasswordUnique + savePassword pair could let two concurrent requests both
+ * observe "unused" and both be served, and the insert was fired without being
+ * awaited so a frozen serverless instance silently dropped rows.
+ * ON CONFLICT DO NOTHING makes the write idempotent and RETURNING makes the
+ * collision observable from the write itself.
+ */
+export async function recordPassword(
   passwordHash: string,
   length: number,
-  charsetConfig: {
-    uppercase: boolean;
-    lowercase: boolean;
-    numbers: boolean;
-    symbols: boolean;
-  },
+  charsetConfig: CharsetConfig,
   ipHash?: string
-): Promise<void> {
-  try {
-    await sql`
-      INSERT INTO public.generated_passwords (password_hash, length, charset_config, ip_hash)
-      VALUES (${passwordHash}, ${length}, ${JSON.stringify(charsetConfig)}, ${ipHash || null})
-    `;
-  } catch (error) {
-    console.error('Error saving password:', error);
-    throw error;
-  }
+): Promise<boolean> {
+  const rows = await sql`
+    INSERT INTO public.generated_passwords (password_hash, length, charset_config, ip_hash)
+    VALUES (${passwordHash}, ${length}, ${JSON.stringify(charsetConfig)}, ${ipHash ?? null})
+    ON CONFLICT (password_hash) DO NOTHING
+    RETURNING id
+  `;
+  return rows.length > 0;
 }
 
 export async function getGenerationStats(): Promise<{ total: number; lastUpdated: Date }> {
   try {
     const result = await sql`
-      SELECT total_generated, last_updated 
-      FROM public.generation_stats 
+      SELECT total_generated, last_updated
+      FROM public.generation_stats
       LIMIT 1
     `;
 
@@ -88,31 +78,5 @@ export async function getGenerationStats(): Promise<{ total: number; lastUpdated
       return { total: 0, lastUpdated: new Date() };
     }
     return { total: 0, lastUpdated: new Date() };
-  }
-}
-
-export async function getRecentPasswords(limit: number = 10): Promise<Array<{
-  id: string;
-  length: number;
-  charsetConfig: any;
-  createdAt: Date;
-}>> {
-  try {
-    const result = await sql`
-      SELECT id, length, charset_config, created_at
-      FROM public.generated_passwords
-      ORDER BY created_at DESC
-      LIMIT ${limit}
-    `;
-
-    return result.map(row => ({
-      id: row.id,
-      length: row.length,
-      charsetConfig: row.charset_config,
-      createdAt: new Date(row.created_at)
-    }));
-  } catch (error) {
-    console.error('Error fetching recent passwords:', error);
-    return [];
   }
 }

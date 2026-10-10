@@ -1,14 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Copy, RefreshCw, Check, Loader2, TrendingUp } from 'lucide-react'
+import { Copy, RefreshCw, Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { addToHistory } from '@/lib/passwordHistory'
+import { SessionDedup } from '@/lib/sessionDedup'
+import { MIN_ENTROPY_BITS, MIN_LENGTH, minimumLengthForFlags, totalEntropy } from '@/lib/entropy'
 import CustomCheckbox from './CustomCheckbox'
+
+const MAX_LENGTH_UI = 64
+const MAX_GENERATION_ATTEMPTS = 8
 
 interface PasswordGeneratorProps {
   isDarkMode: boolean
@@ -24,39 +29,84 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
   const [isGenerating, setIsGenerating] = useState(false)
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
+  // Randomness above the entropy floor already makes a repeat unobservable, so
+  // this ring only has to cover the case entropy cannot: the same visitor
+  // pressing generate twice in one sitting.
+  const sessionDedup = useRef<SessionDedup | null>(null)
+  if (sessionDedup.current === null) {
+    sessionDedup.current = new SessionDedup()
+  }
+
+  const flags = useMemo(
+    () => ({
+      includeUppercase,
+      includeLowercase,
+      includeNumbers,
+      includeSymbols,
+    }),
+    [includeUppercase, includeLowercase, includeNumbers, includeSymbols]
+  )
+
+  // Mirrors the server-side floor so the control never offers a configuration
+  // the API will reject.
+  const minimumLength = useMemo(() => {
+    const required = minimumLengthForFlags(flags)
+    return Number.isFinite(required) ? Math.max(MIN_LENGTH, required) : MIN_LENGTH
+  }, [flags])
+
+  const entropyBits = useMemo(() => totalEntropy(flags, length), [flags, length])
+
+  useEffect(() => {
+    setLength((previous) => Math.max(previous, minimumLength))
+  }, [minimumLength])
+
   const generatePasswords = async () => {
     setIsGenerating(true)
 
     try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          length,
-          count: 1,
-          includeUppercase,
-          includeLowercase,
-          includeNumbers,
-          includeSymbols,
-        }),
-      })
+      let accepted: string | null = null
 
-      if (!response.ok) {
-        const error = await response.json()
-        toast.error(error.error || 'Generation failed')
+      for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS && accepted === null; attempt++) {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            length,
+            count: 1,
+            includeUppercase,
+            includeLowercase,
+            includeNumbers,
+            includeSymbols,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          toast.error(data.error || 'Generation failed')
+          return
+        }
+
+        const candidate: string | undefined = data.passwords?.[0]
+        if (!candidate) {
+          toast.error('Generation failed')
+          return
+        }
+
+        if (await sessionDedup.current!.admit(candidate)) {
+          accepted = candidate
+        }
+      }
+
+      if (accepted === null) {
+        toast.error('Could not produce a new password. Try again.')
         return
       }
 
-      const data = await response.json()
-      setPasswords(data.passwords)
-
-      // Add to history
-      if (data.passwords.length > 0) {
-        await addToHistory(data.passwords[0], length)
-      }
-
+      setPasswords([accepted])
+      await addToHistory(accepted, length)
       toast.success('Generated new password')
     } catch (error) {
       toast.error('Network error')
@@ -179,15 +229,21 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
           <Slider
             value={[length]}
             onValueChange={(value) => setLength(value[0])}
-            max={64}
-            min={8}
+            max={MAX_LENGTH_UI}
+            min={minimumLength}
             step={1}
             className="w-full"
           />
           <div className="flex justify-between mt-1">
-            <span className={`text-xs ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>8</span>
-            <span className={`text-xs ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>64</span>
+            <span className={`text-xs ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>{minimumLength}</span>
+            <span className={`text-xs ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>
+              {entropyBits.toFixed(0)} bits
+            </span>
+            <span className={`text-xs ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>{MAX_LENGTH_UI}</span>
           </div>
+          <p className={`mt-2 text-[10px] ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>
+            Minimum {minimumLength} characters keeps this above {MIN_ENTROPY_BITS} bits of entropy.
+          </p>
         </div>
 
 

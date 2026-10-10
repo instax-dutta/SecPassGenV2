@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { hashPassword, isPasswordUnique, savePassword, hashIP } from '@/lib/db';
+import { buildCharset, meetsEntropyFloor, minimumLengthForFlags, totalEntropy, MIN_ENTROPY_BITS, MIN_LENGTH, MAX_LENGTH, type CharsetFlags } from '@/lib/entropy';
+import { generatePassword } from '@/lib/random';
+import { hashPassword, hashIP, recordPassword, resolveIpPepper } from '@/lib/db';
+import { requireUniquenessSecret } from '@/lib/hashing';
 
-const MAX_ATTEMPTS = 100;
+const MAX_COUNT = 10;
+const MAX_COLLISION_RETRIES = 8;
 
 interface GeneratePasswordRequest {
     length: number;
@@ -12,14 +16,18 @@ interface GeneratePasswordRequest {
     includeSymbols: boolean;
 }
 
-function generatePassword(charset: string, length: number): string {
-    const array = new Uint32Array(length);
-    crypto.getRandomValues(array);
-    let password = '';
-    for (let i = 0; i < length; i++) {
-        password += charset[array[i] % charset.length];
-    }
-    return password;
+function entropyFloorRejection(flags: CharsetFlags, length: number) {
+    const bits = totalEntropy(flags, length);
+    const minimum = minimumLengthForFlags(flags);
+    return NextResponse.json(
+        {
+            error: `Password too weak: ${bits.toFixed(1)} bits of entropy is below the ${MIN_ENTROPY_BITS} bit floor.`,
+            bits: Number(bits.toFixed(2)),
+            requiredBits: MIN_ENTROPY_BITS,
+            minimumLength: Number.isFinite(minimum) ? minimum : null,
+        },
+        { status: 400 }
+    );
 }
 
 export async function POST(request: NextRequest) {
@@ -27,27 +35,22 @@ export async function POST(request: NextRequest) {
         const body: GeneratePasswordRequest = await request.json();
         const { length, count, includeUppercase, includeLowercase, includeNumbers, includeSymbols } = body;
 
-        // Validation
-        if (length < 8 || length > 128) {
+        if (!Number.isInteger(length) || length < MIN_LENGTH || length > MAX_LENGTH) {
             return NextResponse.json(
-                { error: 'Password length must be between 8 and 128 characters' },
+                { error: `Password length must be between ${MIN_LENGTH} and ${MAX_LENGTH} characters` },
                 { status: 400 }
             );
         }
 
-        if (count < 1 || count > 10) {
+        if (!Number.isInteger(count) || count < 1 || count > MAX_COUNT) {
             return NextResponse.json(
-                { error: 'Password count must be between 1 and 10' },
+                { error: `Password count must be between 1 and ${MAX_COUNT}` },
                 { status: 400 }
             );
         }
 
-        // Build charset
-        let charset = '';
-        if (includeLowercase) charset += 'abcdefghijklmnopqrstuvwxyz';
-        if (includeUppercase) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        if (includeNumbers) charset += '0123456789';
-        if (includeSymbols) charset += '!@#$%^&*()_+{}[]|:;<>,.?/~-=';
+        const flags: CharsetFlags = { includeUppercase, includeLowercase, includeNumbers, includeSymbols };
+        const charset = buildCharset(flags);
 
         if (charset.length === 0) {
             return NextResponse.json(
@@ -56,15 +59,24 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Get IP for rate limiting (optional)
+        // Uniqueness is established here rather than by a lookup. Above the floor
+        // a duplicate is unobservable by the birthday bound, so the table is a
+        // cross-check and a source of aggregate stats, not the uniqueness oracle.
+        if (!meetsEntropyFloor(flags, length)) {
+            return entropyFloorRejection(flags, length);
+        }
+
         const ip = request.headers.get('x-forwarded-for') ||
             request.headers.get('x-real-ip') ||
             'unknown';
-        const ipHash = await hashIP(ip);
 
-        // Generate unique passwords
-        // Generate candidate passwords in batches
-        const passwords: string[] = [];
+        let ipHash: string | undefined;
+        try {
+            ipHash = await hashIP(ip, resolveIpPepper());
+        } catch {
+            ipHash = undefined;
+        }
+
         const charsetConfig = {
             uppercase: includeUppercase,
             lowercase: includeLowercase,
@@ -72,62 +84,54 @@ export async function POST(request: NextRequest) {
             symbols: includeSymbols,
         };
 
-        let attempts = 0;
-        const BATCH_SIZE = Math.min(count * 2, 20);
+        const passwords: string[] = [];
+        const batch = new Set<string>();
+        let recorded = true;
 
-        while (passwords.length < count && attempts < 5) { // 5 batches max
-            const batch: string[] = [];
-            const hashes: string[] = [];
-
-            for (let i = 0; i < BATCH_SIZE; i++) {
-                const pw = generatePassword(charset, length);
-                batch.push(pw);
-                hashes.push(await hashPassword(pw));
-            }
-
-            // Check entire batch for uniqueness
-            try {
-                // If isPasswordUnique is still single-check, we should at least try
-                // But let's assume we want to keep it simple or implement a batch check
-                for (let i = 0; i < batch.length && passwords.length < count; i++) {
-                    const pw = batch[i];
-                    const hpw = hashes[i];
-
-                    const isUnique = await isPasswordUnique(hpw);
-
-                    if (isUnique && !passwords.includes(pw)) {
-                        passwords.push(pw);
-                        // Save asynchronously to not block the response
-                        savePassword(hpw, length, charsetConfig, ipHash).catch(err =>
-                            console.error('Async save failed:', err)
-                        );
-                    }
-                }
-            } catch (dbError) {
-                console.error('Database uniqueness check failed, falling back to local uniqueness:', dbError);
-                // If DB fails, just take the first 'count' passwords from the current batch
-                // ensuring they are at least unique within the current batch
-                for (const pw of batch) {
-                    if (passwords.length < count && !passwords.includes(pw)) {
-                        passwords.push(pw);
-                    }
-                }
-                break; // Exit loop after fallback
-            }
-
-            attempts++;
+        // The write is best effort. A database outage must not stop someone
+        // getting a strong password, and the entropy floor already carries the
+        // uniqueness property on its own.
+        try {
+            requireUniquenessSecret();
+            recorded = true;
+        } catch (error) {
+            recorded = false;
+            console.error('Uniqueness recording disabled:', error);
         }
 
-        if (passwords.length === 0) {
-            // Ultimate fallback: generate without DB check if everything failed
-            for (let i = 0; i < count; i++) {
-                passwords.push(generatePassword(charset, length));
+        let attempts = 0;
+        while (passwords.length < count && attempts < MAX_COLLISION_RETRIES * MAX_COUNT) {
+            const candidate = generatePassword(charset, length);
+            if (batch.has(candidate)) continue;
+            batch.add(candidate);
+
+            if (recorded) {
+                try {
+                    const isNew = await recordPassword(
+                        await hashPassword(candidate),
+                        length,
+                        charsetConfig,
+                        ipHash
+                    );
+                    if (!isNew) {
+                        // Already issued. Draw again rather than serve a repeat.
+                        continue;
+                    }
+                } catch (error) {
+                    console.error('Recording failed, serving without the cross-check:', error);
+                    recorded = false;
+                }
             }
+
+            passwords.push(candidate);
+            attempts += 1;
         }
 
         return NextResponse.json({
             passwords,
             count: passwords.length,
+            entropyBits: Number(totalEntropy(flags, length).toFixed(2)),
+            recorded,
             message: 'Success'
         });
 

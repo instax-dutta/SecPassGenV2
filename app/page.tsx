@@ -118,7 +118,7 @@ export default function Home() {
                 {[
                   { icon: '🔐', label: 'AES-256', desc: 'Local History' },
                   { icon: '⚡', label: 'Secure', desc: 'PRNG Based' },
-                  { icon: '🛡️', label: 'Unique', desc: 'DB Verified' }
+                  { icon: '🛡️', label: 'Unique', desc: '60-Bit Floor' }
                 ].map((f, i) => (
                   <div key={f.label} className={`p-2 sm:p-3 rounded-xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
                     <div className="text-sm font-semibold mb-0.5">{f.label}</div>

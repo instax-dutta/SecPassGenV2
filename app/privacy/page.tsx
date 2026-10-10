@@ -40,8 +40,9 @@ export default function PrivacyPolicy() {
                         <h2 className="text-2xl font-bold text-white tracking-tight">Advanced Cryptographic Generation</h2>
                         <p>
                             SecPassGen Pro leverages high-entropy PRNG (Pseudo-Random Number Generation) to create <strong>cryptographically secure passwords</strong>.
-                            Our generation algorithms utilize hardware-level entropy sources, ensuring that every <strong>unique password</strong> produced meets
-                            enterprise security standards for <strong>AES-256 encryption</strong> compatibility and brute-force resistance.
+                            Character selection uses the Web Crypto API with rejection sampling, so every character is drawn uniformly with no bias toward
+                            low indices. Every password you receive is held to a <strong>minimum 60-bit entropy floor</strong>, which is what makes a repeat
+                            unobservable rather than merely unlikely.
                         </p>
                     </div>
 
@@ -49,15 +50,16 @@ export default function PrivacyPolicy() {
                         <h2 className="text-2xl font-bold text-white tracking-tight">Zero-Knowledge Architecture</h2>
                         <p>
                             Our <strong>secure password generator</strong> is built on a zero-knowledge framework. When you generate a <strong>strong random password</strong>,
-                            the actual content of that password is never logged, cached, or stored on our servers in plain text. We solely store cryptographically
-                            anonymized SHA-256 hashes to guarantee <strong>global password uniqueness</strong> without compromising individual user privacy.
+                            the actual content of that password is never logged, cached, or stored on our servers in plain text. To confirm a password was not
+                            already issued, we store only a keyed <strong>HMAC-SHA-256</strong> signature under a secret held solely on the server. Without that
+                            secret a stolen database reveals nothing, because a signature cannot be reversed by trying candidate passwords.
                         </p>
                     </div>
 
                     <div className="space-y-6">
                         <h2 className="text-2xl font-bold text-white tracking-tight">Local-First Encrypted History</h2>
                         <p>
-                            Your personal <strong>password history</strong> is protected by institutional-grade security. Data is stored within your browser's
+                            Your personal <strong>password history</strong> is protected by institutional-grade security. Data is stored within your browser&apos;s
                             Secure Context using the <strong>Web Crypto API</strong>. This history is encrypted with a device-specific key that never leaves your machine.
                             To further enhance your <strong>online security</strong>, all stored items automatically expire and are purged after 24 hours.
                         </p>
@@ -66,8 +68,8 @@ export default function PrivacyPolicy() {
                     <div className="space-y-6">
                         <h2 className="text-2xl font-bold text-white tracking-tight">Anonymized Telemetry & SEO Integrity</h2>
                         <p>
-                            We prioritize transparency. Our <strong>privacy-first approach</strong> means we utilize irreversibly hashed identifiers for
-                            rate limiting and usage statistics. This ensures our <strong>online security tool</strong> remains fast and reliable for all users
+                            We prioritize transparency. Our <strong>privacy-first approach</strong> means we utilize keyed, irreversibly derived identifiers for
+                            usage statistics, and we retain no client address at all. This ensures our <strong>online security tool</strong> remains fast and reliable for all users
                             while maintaining the highest standards of data protection and <strong>search engine visibility</strong>.
                         </p>
                     </div>

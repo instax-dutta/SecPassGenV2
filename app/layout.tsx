@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/sonner'
 const inter = Inter({ subsets: ['latin'] })
 
 const APP_NAME = 'SecPassGen Pro';
-const APP_DESCRIPTION = 'Generate cryptographically secure, unique passwords that are never repeated. Professional password generator with database-backed uniqueness verification.';
+const APP_DESCRIPTION = 'Generate cryptographically secure passwords held to a 60-bit entropy floor, so no repeat is ever served. Passwords are never stored in plain text; only a keyed HMAC signature is recorded.';
 const APP_URL = 'https://passwords.sdad.pro';
 const MAIN_DOMAIN = 'https://sdad.pro';
 
