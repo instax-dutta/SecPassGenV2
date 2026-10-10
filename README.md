@@ -14,9 +14,9 @@
 ## ✨ Features
 
 - 🔐 **Cryptographically Secure** - High-entropy generation via Web Crypto API (PRNG).
-- 🛡️ **Guaranteed Unique** - A 60-bit entropy floor makes a repeat unobservable, with a keyed HMAC cross-check.
+- 🛡️ **Guaranteed Unique** - A 60-bit entropy floor makes a repeat mathematically unobservable.
 - 🔒 **AES-256 Local History** - Encrypted locally in your browser; auto-expires in 24h.
-- ⚡ **No Database Round-Trip** - Uniqueness is established arithmetically; recording is a single atomic write.
+- ⚡ **Zero Backend** - Generation runs in your browser. No API call, no database, no serverless function.
 - 🎨 **Monochrome Aesthetic** - Sophisticated black/white design with premium animations.
 - 🤖 **Agent-Ready** - Self-documenting `AGENTS.md` hierarchy that agents and contributors can navigate.
 - 📱 **Viewport Perfect** - Compact layout designed to fit perfectly in a single viewport.
@@ -35,27 +35,12 @@
    npm install --legacy-peer-deps
    ```
 
-2. **Secrets**
-   - Generate the signature secret: `openssl rand -base64 48`
-
-3. **Database Setup (NeonDB)**
-   - Run `schema.sql` in your [NeonDB Console](https://console.neon.tech).
-   - Create `.env.local` using `.env.example`.
-   ```env
-   DATABASE_URL=your_postgresql_url
-   UNIQUENESS_SECRET=your_generated_secret
-   NEXT_PUBLIC_APP_URL=http://localhost:3000
-   NEXT_PUBLIC_MAIN_DOMAIN=https://sdad.pro
-   ```
-
-   `UNIQUENESS_SECRET` is required. The app refuses to record passwords without it rather than
-   falling back to a default, because a known default would make every stored signature
-   reproducible by anyone holding the database.
-
-3. **Launch**
+2. **Launch**
    ```bash
    npm run dev
    ```
+
+   No database, no secrets, no configuration. The app runs with an empty environment.
 
 ---
 
@@ -65,12 +50,12 @@ System documentation lives in a hierarchical `AGENTS.md` tree. Read the root `AG
 
 ```
 AGENTS.md           - Project facts, product invariants, repo-wide workflow
-├── app/            - Layout, metadata, JSON-LD, sitemap, global CSS
-│   └── api/        - Generation and stats endpoints, uniqueness contracts
+├── app/            - Layout, metadata, JSON-LD, sitemap, global CSS, legal pages
 ├── components/     - First-party UI
 │   └── ui/         - Vendored shadcn/Radix primitives
 ├── hooks/          - Shared React hooks
-├── lib/            - Database access and encrypted browser storage
+├── lib/            - Entropy, character selection, session dedup, encrypted storage
+├── scripts/        - Verification gates for every guarantee above
 └── public/         - Static assets, robots.txt, PWA manifest
 ```
 
@@ -79,10 +64,9 @@ AGENTS.md           - Project facts, product invariants, repo-wide workflow
 ## 🎨 Tech Stack
 
 - **Framework:** Next.js 14 (App Router)
-- **Database:** NeonDB (PostgreSQL)
 - **Animations:** Framer Motion + Lenis (Smooth Scroll)
 - **Styling:** Tailwind CSS + Radix UI
-- **Security:** Web Crypto API + Subkey Encryption
+- **Security:** Web Crypto API (CSPRNG) + AES-GCM local history
 - **SEO/Metadata:** Next.js Metadata API + JSON-LD
 
 ---
@@ -100,9 +84,8 @@ We welcome professional contributions! Whether it's security audits, design refi
 
 ## 📊 Performance & Privacy
 
-- **Zero-Logging**: Passwords never touch our servers in plain text.
-- **Keyed Signatures**: Passwords are recorded only as an HMAC-SHA-256 under a server-held secret, so a stolen database cannot be cracked.
-- **Resilience**: API handles database latency with automatic local fallback.
+- **Never Transmitted**: Passwords are generated in your browser and never sent to our servers at all.
+- **Nothing Stored**: We operate no database and keep no record of any password.
 - **Speed**: Optimized bundle size with Next.js image and CSS optimization.
 
 ---

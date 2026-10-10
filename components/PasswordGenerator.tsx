@@ -9,7 +9,8 @@ import { Copy, RefreshCw, Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { addToHistory } from '@/lib/passwordHistory'
 import { SessionDedup } from '@/lib/sessionDedup'
-import { MIN_ENTROPY_BITS, MIN_LENGTH, minimumLengthForFlags, totalEntropy } from '@/lib/entropy'
+import { MIN_ENTROPY_BITS, MIN_LENGTH, buildCharset, meetsEntropyFloor, minimumLengthForFlags, totalEntropy } from '@/lib/entropy'
+import { generatePassword } from '@/lib/random'
 import CustomCheckbox from './CustomCheckbox'
 
 const MAX_LENGTH_UI = 64
@@ -60,41 +61,22 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
     setLength((previous) => Math.max(previous, minimumLength))
   }, [minimumLength])
 
+  // Generated entirely in the browser. The password is never sent anywhere:
+  // there is no API route, no database, and no network request involved.
   const generatePasswords = async () => {
     setIsGenerating(true)
 
     try {
+      if (!meetsEntropyFloor(flags, length)) {
+        toast.error(`Too weak: ${totalEntropy(flags, length).toFixed(1)} bits is below the ${MIN_ENTROPY_BITS} bit floor.`)
+        return
+      }
+
+      const charset = buildCharset(flags)
       let accepted: string | null = null
 
       for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS && accepted === null; attempt++) {
-        const response = await fetch('/api/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            length,
-            count: 1,
-            includeUppercase,
-            includeLowercase,
-            includeNumbers,
-            includeSymbols,
-          }),
-        })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-          toast.error(data.error || 'Generation failed')
-          return
-        }
-
-        const candidate: string | undefined = data.passwords?.[0]
-        if (!candidate) {
-          toast.error('Generation failed')
-          return
-        }
-
+        const candidate = generatePassword(charset, length)
         if (await sessionDedup.current!.admit(candidate)) {
           accepted = candidate
         }
@@ -109,7 +91,7 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
       await addToHistory(accepted, length)
       toast.success('Generated new password')
     } catch (error) {
-      toast.error('Network error')
+      toast.error('Generation failed')
       console.error('Generation error:', error)
     } finally {
       setIsGenerating(false)

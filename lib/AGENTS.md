@@ -2,30 +2,25 @@
 
 ## Purpose
 
-Domain logic that is neither a route nor a component: entropy accounting, character selection, keyed hashing, database access, session-level duplicate suppression, and browser storage.
+Domain logic that is neither a route nor a component: entropy accounting, character selection, session-level duplicate suppression, and browser storage. Everything here runs in the browser.
 
 ## Ownership
 
 - `entropy.ts` - Character sets, the 60-bit floor, and minimum-length arithmetic. Pure, no runtime dependency.
 - `random.ts` - Uniform character selection and password construction. Pure apart from `crypto.getRandomValues`.
-- `hashing.ts` - HMAC signing, secret validation, and client-address hashing. Server-only.
-- `db.ts` - NeonDB client and every SQL statement in the project. Server-only.
-- `sessionDedup.ts` - Per-session duplicate suppression. Browser-only.
+- `sessionDedup.ts` - Per-session duplicate suppression.
 - `passwordHistory.ts` - Encrypted browser-side history. Browser-only.
 - `utils.ts` - The `cn` class-name helper. Runtime-agnostic.
 
 ## Local Contracts
 
-### The runtime split must not blur
+### Everything in this directory is browser code
 
-- `db.ts` imports `@neondatabase/serverless` and throws at module load when `DATABASE_URL` is unset. Never import it from a `'use client'` module.
-- `hashing.ts` reads `process.env` and is server-only.
-- `passwordHistory.ts` and `sessionDedup.ts` use `localStorage`, `navigator`, `screen`, and `crypto.subtle`. Browser-only; never import them from an API route.
-- `entropy.ts` and `random.ts` are safe in either runtime.
+Every module runs in the visitor's browser. None may read `process.env`, open a network connection, or be imported by anything server-side. There is no longer a server/browser split here because there is no server.
 
 ### Relative imports carry an explicit extension
 
-`db.ts` imports `./hashing.ts`, not `./hashing`. The verification scripts under `scripts/` load these modules directly in Node, which does not resolve the `@/` alias and does not infer extensions. `tsconfig.json` sets `allowImportingTsExtensions` to permit this.
+Modules are imported with an explicit `.ts` extension where a verification script loads them directly in Node, which resolves neither the `@/` alias nor bare specifiers. `tsconfig.json` sets `allowImportingTsExtensions` to permit this.
 
 ### Entropy floor
 
@@ -37,20 +32,6 @@ Domain logic that is neither a route nor a component: entropy accounting, charac
 ### Character selection
 
 `random.ts` uses rejection sampling. `draw % alphabetSize` is banned: it folds the top `2^32 mod N` values onto the low indices. `randomIndex` throws rather than falling back to a biased modulo if the draw source never yields an accepted value, because a silent bias fallback would reintroduce exactly the defect this replaced.
-
-### Keyed hashing
-
-- `requireUniquenessSecret` has no fallback and requires 32+ characters. A default constant would be indistinguishable from a configured secret while making every stored signature reproducible from a database dump.
-- `keyedHash` is HMAC-SHA-256 truncated to 22 base64url characters, truncated in `hashing.ts` and nowhere else. Deterministic, so the unique constraint still detects repeats.
-- `hashIP` takes its pepper as an explicit required argument. It previously read `process.env.IP_SALT` inline as `ip + process.env.IP_SALT || 'default-salt'`, which parses as `(ip + IP_SALT) || 'default-salt'`: an unset salt silently became the literal string `"undefined"`.
-
-### Database access
-
-- Every statement is schema-qualified with `public.` because Neon does not guarantee a `search_path`.
-- `recordPassword` is one `INSERT ... ON CONFLICT DO NOTHING RETURNING id`, and the caller decides collision from `rows.length > 0`. It replaced an `isPasswordUnique` probe plus a separate `savePassword`, which could let two concurrent requests both observe "unused", and whose insert was never awaited.
-- `generation_stats` is maintained by the `increment_generation_stats` Postgres trigger on insert into `generated_passwords`. It counts *inserts*, not generations.
-- `getGenerationStats` swallows every error and returns a zeroed result, including `42P01` for a missing table. Callers cannot distinguish "no data yet" from "database unreachable".
-- The dead `getRecentPasswords` export was removed.
 
 ### Session dedup
 
@@ -67,8 +48,7 @@ Domain logic that is neither a route nor a component: entropy accounting, charac
 ## Work Guidance
 
 - Keep `cn` as the only class-name helper.
-- Add database access as named exports from `db.ts`. Do not open additional `neon()` clients elsewhere.
-- Anything derived from a password that leaves the browser must be non-reversible without a secret you control. Reach for HMAC, not a bare digest.
+- Anything derived from a password that would ever leave the browser must be non-reversible without a secret you control. Reach for HMAC, not a bare digest.
 - New generation logic belongs in `entropy.ts` or `random.ts`, never inline in a route or component.
 
 ## Verification
@@ -79,10 +59,8 @@ Domain logic that is neither a route nor a component: entropy accounting, charac
 node scripts/check-entropy-floor.mjs
 node scripts/check-random-sampling.mjs
 node scripts/check-session-dedup.mjs
-node scripts/check-hash-ip.mjs
-node scripts/check-keyed-hash.mjs
-node scripts/check-uniqueness-secret.mjs
-node scripts/check-atomic-insert.mjs
+node scripts/check-no-server-state.mjs
+node scripts/check-generation-is-local.mjs
 ```
 
 ## Child DOX Index

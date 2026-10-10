@@ -2,12 +2,11 @@
 
 ## Purpose
 
-The App Router surface: the HTML shell, published metadata, crawler-facing routes, global stylesheet, and the single-page home experience.
+The App Router surface: the HTML shell, published metadata, crawler-facing routes, global stylesheet, and the single-page home experience. There is no `app/api` directory; the app serves no server routes.
 
 ## Ownership
 
 - Owns routing, `layout.tsx`, page composition, `globals.css`, `sitemap.ts`, and the legal pages.
-- Does not own API handlers. See `api/AGENTS.md`.
 - Does not own component internals. See `../components/AGENTS.md`.
 
 ## Local Contracts
@@ -44,5 +43,3 @@ The App Router surface: the HTML shell, published metadata, crawler-facing route
 ## Verification
 
 ## Child DOX Index
-
-- `api/AGENTS.md` - Generation and stats endpoints, their contracts, and the uniqueness invariants they are supposed to enforce

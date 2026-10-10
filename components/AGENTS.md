@@ -7,15 +7,16 @@ First-party UI. Everything a visitor sees and touches.
 ## Ownership
 
 - Owns presentation and client-side interaction for the generator, the history sidebar, the animated background, and the custom checkbox.
-- Does not own generation logic. See `../app/api/AGENTS.md`.
+- Does not own generation logic. See `../lib/AGENTS.md`.
 - Does not own persistence. See `../lib/AGENTS.md`.
 - Does not own the vendored primitive set. See `ui/AGENTS.md`.
 
 ## Local Contracts
 
 - Every first-party component takes `isDarkMode: boolean` as a prop and derives its own colours from it. Theme is passed down, never read from context.
-- `PasswordGenerator` is the only caller of `POST /api/generate` and always requests `count: 1`.
-- `PasswordGenerator` pushes every password it accepts into the encrypted history via `addToHistory`.
+- `PasswordGenerator` performs generation itself. It calls `generatePassword` from `lib/random.ts` directly and makes no network request of any kind, so a password cannot reach the server even by accident.
+- It re-checks `meetsEntropyFloor` locally before drawing, so the guard holds even if the slider is bypassed.
+- It pushes every password it accepts into the encrypted history via `addToHistory`.
 - `PasswordHistory` renders nothing when `isHistoryAvailable()` returns false, so browsers lacking `crypto.subtle` lose the sidebar silently instead of erroring.
 - The history sidebar is `hidden lg:block`, so below the large breakpoint there is no history UI at all. That is a product gap, not a styling detail.
 
@@ -34,13 +35,12 @@ The component also keeps one `SessionDedup` instance in a ref and retries up to 
 
 - User-facing notifications go through `sonner`, whose `Toaster` is already mounted in `app/layout.tsx`. Do not add a second notification system.
 - Clipboard writes go through `navigator.clipboard.writeText` and must be wrapped in try/catch.
-- Do not call `crypto.getRandomValues` from these components. Entropy belongs in `app/api/generate`.
+- Never add a `fetch` to a component. `scripts/check-generation-is-local.mjs` fails the build if one appears, because the moment a password can be posted anywhere the central privacy claim is void.
 
 ### Dead code currently in this directory
 
 - `StrengthMeter.tsx` is not imported anywhere. Delete it or wire it into `PasswordGenerator`.
-- `TrendingUp` is imported but unused in `app/page.tsx`.
-- `ExternalLink` is imported but unused in `app/page.tsx`.
+- `ExternalLink` and `TrendingUp` are imported but unused in `app/page.tsx`.
 
 `AnimatedBackground.tsx` binds explicitly typed `surface` and `context` aliases for the canvas because TypeScript narrows a `const` inside arrow closures but not inside a class body. Keep that indirection. It also registers a named `onResize` handler and removes that same reference on cleanup; an inline arrow listener cannot be removed and leaked one handler per theme toggle.
 

@@ -7,21 +7,20 @@
 
 - **Product**: SecPassGen Pro, a browser-based password generator. Live at `https://passwords.sdad.pro`; parent domain `https://sdad.pro`.
 - **Stack**: Next.js 14 App Router, React 18, TypeScript, Tailwind CSS, Framer Motion, Lenis, Radix UI / shadcn.
-- **Persistence**: NeonDB serverless PostgreSQL through `@neondatabase/serverless`.
+- **Persistence**: none. Passwords are generated in the browser and never leave the device. There is no database, no API route, and no server-side state.
 - **Install**: `npm install --legacy-peer-deps`
 - **Commands**: `npm run dev`, `npm run build`, `npm run start`, `npm run lint`
-- **Env vars**: `DATABASE_URL`, `UNIQUENESS_SECRET` (required, 32+ characters, generate with `openssl rand -base64 48`), `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_MAIN_DOMAIN`. `IP_PEPPER` is optional and defaults to a domain-separated use of `UNIQUENESS_SECRET`. `RATE_LIMIT_PER_HOUR` is declared in `.env.example` but no rate limiting is implemented anywhere.
-- **Schema**: `schema.sql` at the repo root is the source of truth for the database. It is applied by hand in the Neon console; there is no migration runner.
+- **Env vars**: `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_MAIN_DOMAIN`, both cosmetic. Every other variable has been deleted from the Vercel project. Nothing is required: the app builds and runs with a completely empty environment.
 - **Docs**: this AGENTS.md tree replaces the former `.agent/architecture.toon` and `.agent/codebase.toon`.
 
 ## Product Invariants
 
 These hold across every directory. Breaking one breaks a published privacy claim.
 
-- No password is ever persisted, logged, or transmitted in plaintext.
-- Anything derived from a password that leaves the browser must be non-reversible by a holder of that artifact alone. That means a keyed HMAC under `UNIQUENESS_SECRET`, never a bare digest. A bare SHA-256 of a short lowercase password is a dictionary-attack target. See `lib/AGENTS.md`.
-- `UNIQUENESS_SECRET` has no fallback value. A default would be indistinguishable from a configured secret while making every stored signature reproducible from a database dump, so the code refuses to record passwords instead.
-- Uniqueness comes from an enforced 60-bit entropy floor, not from a database lookup. Do not reintroduce a per-candidate query.
+- A password never leaves the browser. There is no route to send it anywhere, and reintroducing one voids this claim outright.
+- Nothing derived from a password is persisted, server-side or otherwise. The only storage is encrypted local history in `local/passwordHistory.ts`, which expires in 24 hours.
+- If any password-derived artifact is ever added that leaves the browser, it must be non-reversible by a holder of that artifact alone: a keyed HMAC, never a bare digest. A bare SHA-256 of a short lowercase password is a dictionary-attack target.
+- Uniqueness comes from an enforced 60-bit entropy floor, not from a lookup against anything. Do not reintroduce a stored set of issued passwords.
 - Marketing copy, `app/layout.tsx` metadata, and `app/privacy/page.tsx` must describe what the code actually does. Update them in the same change whenever generation, storage, or network behaviour changes.
 
 ## Core Contract
@@ -99,8 +98,8 @@ Default section order:
 
 - `npm run lint` and `npm run build` are the only automated checks the project ships with. There is no test runner and no test script.
 - `next.config.mjs` sets `eslint.ignoreDuringBuilds: true` and `typescript.ignoreBuildErrors: true`. A passing build therefore does **not** mean the code type-checks or lints cleanly. Run `npx tsc --noEmit` and `npm run lint` explicitly whenever types matter. Both were passing as of the entropy-floor change; before it, `npx tsc --noEmit` reported ten pre-existing null-safety errors and `npm run lint` could not run at all because no linter was installed.
-- `GATES.md` at the repository root is a completion ledger for the password-uniqueness work. Each gate is a repository-owned Node script under `scripts/`, and the absence checks carry positive-control fixtures in `scripts/.fixtures/`. Run it with the unlazy gate checker, or run the scripts directly as `node scripts/check-*.mjs`.
-- `scripts/check-route-integration.mjs` boots a real dev server against an intentionally unreachable database. It proves the entropy floor is enforced before any database access. It takes roughly a minute and needs the port it names to be free.
+- `GATES.md` at the repository root is a completion ledger for the stateless-generation work. Each gate is a repository-owned Node script under `scripts/`, and every absence check carries a positive-control fixture in `scripts/.fixtures/` so a detector that cannot fire is caught at authoring time. Run the scripts directly as `node scripts/check-*.mjs`.
+- The absence gates in `check-no-server-state.mjs` and `check-generation-is-local.mjs` are the ones that would notice an unwanted server or network path reappearing. Both were proven able to fail by fault injection, not merely by inspection.
 
 ## User Preferences
 
@@ -111,7 +110,6 @@ Default section order:
 ## Child DOX Index
 
 - `app/AGENTS.md` - App Router surface: root layout, metadata and JSON-LD, sitemap, global CSS, viewport-locked home page
-- `app/api/AGENTS.md` - Password generation and stats endpoints, their request/response contracts, and the uniqueness invariants they are supposed to provide
 - `components/AGENTS.md` - First-party UI: generator, encrypted history sidebar, animated background, custom inputs
 - `components/ui/AGENTS.md` - Vendored shadcn/Radix primitives and local deviations from upstream
 - `hooks/AGENTS.md` - Shared React hooks: `useIsMobile` and the toast reducer

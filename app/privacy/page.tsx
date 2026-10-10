@@ -50,9 +50,9 @@ export default function PrivacyPolicy() {
                         <h2 className="text-2xl font-bold text-white tracking-tight">Zero-Knowledge Architecture</h2>
                         <p>
                             Our <strong>secure password generator</strong> is built on a zero-knowledge framework. When you generate a <strong>strong random password</strong>,
-                            the actual content of that password is never logged, cached, or stored on our servers in plain text. To confirm a password was not
-                            already issued, we store only a keyed <strong>HMAC-SHA-256</strong> signature under a secret held solely on the server. Without that
-                            secret a stolen database reveals nothing, because a signature cannot be reversed by trying candidate passwords.
+                            it is created inside your browser and it <strong>never leaves your device</strong>. It is never transmitted to us, never logged, never
+                            cached, and never stored on a server. We operate no database and hold no record of any password, so there is nothing for anyone to obtain
+                            from us, including us.
                         </p>
                     </div>
 
@@ -66,10 +66,10 @@ export default function PrivacyPolicy() {
                     </div>
 
                     <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">Anonymized Telemetry & SEO Integrity</h2>
+                        <h2 className="text-2xl font-bold text-white tracking-tight">Anonymized Telemetry &amp; SEO Integrity</h2>
                         <p>
-                            We prioritize transparency. Our <strong>privacy-first approach</strong> means we utilize keyed, irreversibly derived identifiers for
-                            usage statistics, and we retain no client address at all. This ensures our <strong>online security tool</strong> remains fast and reliable for all users
+                            We prioritize transparency. Because generation happens entirely on your machine, we collect <strong>no usage telemetry whatsoever</strong>:
+                            no request logs, no client addresses, and no counters. There is no analytics script on this page. This ensures our <strong>online security tool</strong> remains fast and reliable for all users
                             while maintaining the highest standards of data protection and <strong>search engine visibility</strong>.
                         </p>
                     </div>
