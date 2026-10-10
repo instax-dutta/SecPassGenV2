@@ -19,7 +19,7 @@ export default function TermsOfService() {
 
                 <header className="space-y-6">
                     <h1 className="text-5xl font-bold tracking-tighter">Terms of Service</h1>
-                    <p className="text-white/40 text-lg">Operating guidelines for the world's most secure utility. Last updated: January 24, 2026</p>
+                    <p className="text-white/40 text-lg">Operating guidelines for the world&apos;s most secure utility. Last updated: January 24, 2026</p>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8">
                         {[
                             { icon: Gavel, label: 'Legal Binding' },
@@ -58,7 +58,7 @@ export default function TermsOfService() {
                         <h2 className="text-2xl font-bold text-white tracking-tight">Limitation of Warranty</h2>
                         <p>
                             While we utilize <strong>cryptographically secure algorithms</strong> and local-first encryption, SDAD.pro provides this
-                            utility on an "as-is" and "as-available" basis. We do not guarantee the perpetual availability of the service, nor are we
+                            utility on an &quot;as-is&quot; and &quot;as-available&quot; basis. We do not guarantee the perpetual availability of the service, nor are we
                             liable for any damages resulting from the loss or compromised state of <strong>generated passwords</strong> managed by the user.
                         </p>
                     </div>

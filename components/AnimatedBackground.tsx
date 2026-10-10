@@ -16,6 +16,11 @@ export default function AnimatedBackground({ isDarkMode }: AnimatedBackgroundPro
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    // TypeScript keeps a narrowed const inside arrow closures but not inside a
+    // class body, so the class reads these explicitly typed aliases instead.
+    const surface: HTMLCanvasElement = canvas
+    const context: CanvasRenderingContext2D = ctx
+
     let animationFrameId: number
     let particles: Particle[] = []
 
@@ -35,8 +40,8 @@ export default function AnimatedBackground({ isDarkMode }: AnimatedBackgroundPro
       pulsePhase: number
 
       constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
+        this.x = Math.random() * surface.width
+        this.y = Math.random() * surface.height
         this.size = Math.random() * 2 + 0.5
         this.speedX = (Math.random() - 0.5) * 0.3
         this.speedY = (Math.random() - 0.5) * 0.3
@@ -49,10 +54,10 @@ export default function AnimatedBackground({ isDarkMode }: AnimatedBackgroundPro
         this.x += this.speedX
         this.y += this.speedY
 
-        if (this.x > canvas.width) this.x = 0
-        if (this.x < 0) this.x = canvas.width
-        if (this.y > canvas.height) this.y = 0
-        if (this.y < 0) this.y = canvas.height
+        if (this.x > surface.width) this.x = 0
+        if (this.x < 0) this.x = surface.width
+        if (this.y > surface.height) this.y = 0
+        if (this.y < 0) this.y = surface.height
 
         this.pulsePhase += this.pulseSpeed
       }
@@ -61,12 +66,12 @@ export default function AnimatedBackground({ isDarkMode }: AnimatedBackgroundPro
         const pulse = Math.sin(this.pulsePhase) * 0.3 + 0.7
         const currentOpacity = this.opacity * pulse
 
-        ctx.beginPath()
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
-        ctx.fillStyle = isDarkMode
+        context.beginPath()
+        context.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+        context.fillStyle = isDarkMode
           ? `rgba(255, 255, 255, ${currentOpacity})`
           : `rgba(0, 0, 0, ${currentOpacity})`
-        ctx.fill()
+        context.fill()
       }
     }
 
@@ -118,14 +123,15 @@ export default function AnimatedBackground({ isDarkMode }: AnimatedBackgroundPro
     init()
     animate()
 
-    window.addEventListener('resize', () => {
+    const onResize = () => {
       resizeCanvas()
       init()
-    })
+    }
+    window.addEventListener('resize', onResize)
 
     return () => {
       cancelAnimationFrame(animationFrameId)
-      window.removeEventListener('resize', resizeCanvas)
+      window.removeEventListener('resize', onResize)
     }
   }, [isDarkMode])
 
