@@ -100,6 +100,7 @@ Default section order:
 - `next.config.mjs` sets `eslint.ignoreDuringBuilds: true` and `typescript.ignoreBuildErrors: true`. A passing build therefore does **not** mean the code type-checks or lints cleanly. Run `npx tsc --noEmit` and `npm run lint` explicitly whenever types matter. Both were passing as of the entropy-floor change; before it, `npx tsc --noEmit` reported ten pre-existing null-safety errors and `npm run lint` could not run at all because no linter was installed.
 - `GATES.md` at the repository root is a completion ledger for the stateless-generation work. Each gate is a repository-owned Node script under `scripts/`, and every absence check carries a positive-control fixture in `scripts/.fixtures/` so a detector that cannot fire is caught at authoring time. Run the scripts directly as `node scripts/check-*.mjs`.
 - The absence gates in `check-no-server-state.mjs` and `check-generation-is-local.mjs` are the ones that would notice an unwanted server or network path reappearing. Both were proven able to fail by fault injection, not merely by inspection.
+- `scripts/check-browser-e2e.mjs` drives the **deployed** site in headless Chromium: it clicks Generate, reads the rendered password, checks the slider floor moves 10 to 11 to 19 as the alphabet narrows, and fails on any network request that is not a site asset. It needs `npx playwright install chromium` once, and it is the only check that exercises the component, the floor and the DOM together. Set `E2E_URL` to point it at a local server instead.
 
 ## User Preferences
 

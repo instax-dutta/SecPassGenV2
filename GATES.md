@@ -7,7 +7,7 @@ Scope: remove the database and every server-side artifact, so passwords are gene
 - [x] G0: this ledger's own oracles are lint-clean
   CHECK: node /Users/saiduttaabhishekdash/.agents/skills/unlazy/scripts/gate-lint.mjs GATES.md
   EXPECT: LINT OK
-  EVIDENCE: automatic-evidence=v1; definition-sha256=ac2362a5e404f55f3e0757bb13c502652d0244eaefefbc244421b340eed8ed2a; exit=0; EXPECT=matched; output-sha256=07c98dab0107df0a40740c243115ab016b3c252f7c6e6e094b6e4a0a3463e7d5; output-bytes=269; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
+  EVIDENCE: automatic-evidence=v1; definition-sha256=ac2362a5e404f55f3e0757bb13c502652d0244eaefefbc244421b340eed8ed2a; exit=0; EXPECT=matched; output-sha256=eb36213429e100f4681a3d8b3d2ca29e4e0f490607f6a77790b5723e65d6f2b7; output-bytes=270; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
 
 - [x] G1: configurations below 60 bits of entropy are rejected and compliant ones are accepted, with the minimum length agreeing with the floor
   CHECK: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-entropy-floor.mjs
@@ -17,7 +17,7 @@ Scope: remove the database and every server-side artifact, so passwords are gene
 - [x] G2: character selection is uniform by construction, rejects the biased residue range, and no unconditional modulo indexing survives in the source
   CHECK: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-random-sampling.mjs
   EXPECT: RANDOM SAMPLING VERIFIED
-  EVIDENCE: automatic-evidence=v1; definition-sha256=60c1d72cc5ceff0efac03a761c13c8d2813bb80807a592b7a7e460dc7402174c; exit=0; EXPECT=matched; output-sha256=188c06fb06a160ca8acf8bce0be2c06fdac17a50eed6f6b370065fb77de56550; output-bytes=107; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
+  EVIDENCE: automatic-evidence=v1; definition-sha256=60c1d72cc5ceff0efac03a761c13c8d2813bb80807a592b7a7e460dc7402174c; exit=0; EXPECT=matched; output-sha256=81a8e995b3edc6eb8638ed28acf79b9ee64dec59c221c43b327c284b8bb7ea09; output-bytes=107; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
 
 - [x] G3: a password already shown this session is refused, and the resident set never exceeds its cap
   CHECK: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-session-dedup.mjs
@@ -49,8 +49,13 @@ Scope: remove the database and every server-side artifact, so passwords are gene
   EXPECT: BUILD WITHOUT SECRETS CLEAN
   EVIDENCE: automatic-evidence=v1; definition-sha256=a37ea6c3c883c460ca6236e7edbb4efcccb2f0785177f2093ee5ef3133ee0797; exit=0; EXPECT=matched; output-sha256=608fcf4299eb6ea34c6c3cae3b1b4d98d06324e1362252b939847d9feb906089; output-bytes=1272; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
 
-- [x] G9: the DOX tree describes the stateless architecture and every published privacy claim matches it
+- [x] G10: a real browser, driving the live site, produces distinct passwords that match the on-screen controls and never leave the page
+  CHECK: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-browser-e2e.mjs
+  EXPECT: BROWSER END TO END VERIFIED
+  EVIDENCE: automatic-evidence=v1; definition-sha256=7a610f5feb55c60e7a30096f389281d5c9ee8e9d4c9e0ef88daf1b4e738d6aa5; exit=0; EXPECT=matched; output-sha256=aa5922143727041e2b7ecb30a94604b50552b333af038d9bfb4cfe9cb77df3d6; output-bytes=140; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
+
+- [x] G11: the DOX tree describes the stateless architecture and every published privacy claim matches it
   EVIDENCE: done 2026-10-10. On instaxduttas-projects/sec-pass-gen-v2, removed from all three environments: DATABASE_URL (a live PostgreSQL credential for the Neon project), UNIQUENESS_SECRET, and RATE_LIMIT_PER_HOUR, which was declared in the old .env.example but read by no code in the repo. IP_PEPPER was never created, confirmed by vercel reporting it as not found. Only NEXT_PUBLIC_APP_URL and NEXT_PUBLIC_MAIN_DOMAIN remain, both cosmetic. Verified with `vercel env ls`, which now lists exactly those two.
 
-- [x] G10: production environment purged of the credentials the app no longer uses
+- [x] G12: production environment purged of the credentials the app no longer uses
   EVIDENCE: done 2026-10-10. On instaxduttas-projects/sec-pass-gen-v2, removed from all three environments: DATABASE_URL (a live PostgreSQL credential for the Neon project), UNIQUENESS_SECRET, and RATE_LIMIT_PER_HOUR, which was declared in the old .env.example but read by no code in the repo. IP_PEPPER was never created, confirmed by vercel reporting it as not found. Only NEXT_PUBLIC_APP_URL and NEXT_PUBLIC_MAIN_DOMAIN remain, both cosmetic. Verified with `vercel env ls`, which now lists exactly those two.
