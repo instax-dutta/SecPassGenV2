@@ -6,7 +6,8 @@ The App Router surface: the HTML shell, published metadata, crawler-facing route
 
 ## Ownership
 
-- Owns routing, `layout.tsx`, page composition, `globals.css`, `sitemap.ts`, and the legal pages.
+- Owns routing, `layout.tsx`, page composition, `globals.css`, `sitemap.ts`, the legal pages, and the `llms-full.txt` route.
+- `app/privacy/page.tsx` and `app/terms/page.tsx` are client components that carry their own theme state rather than inheriting the home page's. Both re-bind `--track`, `--grid` and `--signal` inline for the same reason `app/page.tsx` does.
 - Does not own component internals. See `../components/AGENTS.md`.
 
 ## Local Contracts
@@ -17,6 +18,14 @@ The App Router surface: the HTML shell, published metadata, crawler-facing route
 
 - `APP_DESCRIPTION` is a published product claim. Changing generation, storage, or network behaviour means changing it in the same commit.
 - Page-level `metadata` exports must not contradict the layout defaults.
+
+### Machine-readable entry points
+
+`public/llms.txt` is the canonical machine-readable summary and is served as a static file. `app/llms-full.txt/route.ts` reads that same file and serves it, so the two cannot drift.
+
+- Do not add an `app/llms.txt` route. A route and a file in `public/` at the same path collide and the route 500s.
+- `app/privacy/page.tsx` carries a `FAQPage` JSON-LD block generated from the same `QA_BLOCKS` array that renders the visible accordion. Adding a question means adding it to that array, not to the schema by hand.
+- Structured data lives in `app/layout.tsx` as an `@graph` of `WebApplication` and `WebSite`.
 
 ### The production hostname is hardcoded in four places
 

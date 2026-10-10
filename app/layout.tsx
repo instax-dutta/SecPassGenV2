@@ -5,8 +5,8 @@ import { Toaster } from '@/components/ui/sonner'
 
 const inter = Inter({ subsets: ['latin'] })
 
-const APP_NAME = 'SecPassGen Pro';
-const APP_DESCRIPTION = 'Generate cryptographically secure passwords held to a 60-bit entropy floor, so no repeat is ever served. Generated entirely in your browser: no server, no database, nothing stored.';
+const APP_NAME = 'SecPassGen';
+const APP_DESCRIPTION = 'Free browser-only password generator. Passwords are created on your device with the Web Crypto API and are never transmitted or stored. Every password is held to a 60-bit entropy floor, so no repeat is ever served.';
 const APP_URL = 'https://passwords.sdad.pro';
 const MAIN_DOMAIN = 'https://sdad.pro';
 
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: '72x72' },
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
       { url: '/icon.svg', type: 'image/svg+xml' },
     ],
     apple: [
@@ -98,7 +98,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   category: 'security',
   other: {
-    'og:logo': 'https://passwords.sdad.pro/logo.png',
+    'og:logo': 'https://passwords.sdad.pro/icon-512.png',
   }
 }
 
@@ -115,27 +115,38 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
-              '@type': 'WebApplication',
-              name: APP_NAME,
-              description: APP_DESCRIPTION,
-              url: APP_URL,
-              applicationCategory: 'SecurityApplication',
-              operatingSystem: 'Any',
-              offers: {
-                '@type': 'Offer',
-                price: '0',
-                priceCurrency: 'USD',
-              },
-              creator: {
-                '@type': 'Organization',
-                name: 'SDAD',
-                url: MAIN_DOMAIN,
-              },
-              publisher: {
-                '@type': 'Organization',
-                name: 'SDAD',
-                url: MAIN_DOMAIN,
-              },
+              '@graph': [
+                {
+                  '@type': 'WebApplication',
+                  '@id': `${APP_URL}/#app`,
+                  name: APP_NAME,
+                  description: APP_DESCRIPTION,
+                  url: APP_URL,
+                  applicationCategory: 'SecurityApplication',
+                  applicationSubCategory: 'Password Generator',
+                  operatingSystem: 'Any',
+                  browserRequirements: 'Requires a browser with crypto.getRandomValues',
+                  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+                  featureList: [
+                    'Runs entirely in the browser',
+                    'No server, no database, no account',
+                    '60-bit minimum entropy floor',
+                    'Zero network requests after page load',
+                    'No analytics, cookies, or tracking',
+                  ],
+                  creator: { '@type': 'Organization', name: 'SDAD', url: MAIN_DOMAIN },
+                  publisher: { '@type': 'Organization', name: 'SDAD', url: MAIN_DOMAIN },
+                },
+                {
+                  '@type': 'WebSite',
+                  '@id': `${APP_URL}/#website`,
+                  url: APP_URL,
+                  name: APP_NAME,
+                  description: APP_DESCRIPTION,
+                  publisher: { '@id': `${APP_URL}/#app` },
+                  inLanguage: 'en',
+                },
+              ],
             }),
           }}
         />

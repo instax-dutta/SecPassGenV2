@@ -26,4 +26,7 @@ Allow: /
 User-agent: OAI-SearchBot
 Allow: /
 
+# Machine-readable summary for AI answer engines
+# https://llmstxt.org/
+
 Sitemap: https://passwords.sdad.pro/sitemap.xml

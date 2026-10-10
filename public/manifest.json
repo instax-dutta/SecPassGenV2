@@ -1,23 +1,23 @@
 {
     "name": "SecPassGen Pro",
     "short_name": "SecPassGen",
-    "description": "Generate cryptographically secure, unique passwords",
+    "description": "Browser-only password generator. Nothing sent, nothing stored.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#000000",
     "icons": [
         {
-            "src": "/favicon.ico",
+            "src": "/icon-512.png",
             "sizes": "512x512",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
         },
         {
             "src": "/apple-icon.png",
             "sizes": "180x180",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
         }
     ]
 }

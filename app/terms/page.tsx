@@ -1,83 +1,149 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Gavel, Scale, FileText, CheckCircle } from 'lucide-react'
 
-export default function TermsOfService() {
-    return (
-        <div className="min-h-screen bg-black text-white p-6 sm:p-24 selection:bg-white selection:text-black">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-3xl mx-auto space-y-16"
-            >
-                <Link href="/" className="inline-flex items-center gap-2 text-white/40 hover:text-white transition-all hover:-translate-x-1">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Home
-                </Link>
+const SECTIONS: { heading: string; body: React.ReactNode }[] = [
+  {
+    heading: 'What this service is',
+    body: (
+      <>
+        SecPassGen is a free, single page tool that generates random passwords in your browser. It
+        has no accounts, no paid tiers, no telemetry and no database. Using it requires no
+        registration and no configuration.
+      </>
+    ),
+  },
+  {
+    heading: 'What it is not',
+    body: (
+      <>
+        It is not a password manager. It does not store, sync, autofill, or remember your passwords
+        across devices. It does not audit existing passwords, detect breaches, or check whether a
+        password has appeared in a leaked dataset. Those are different products that require
+        handling your credentials, which is precisely what this one refuses to do.
+      </>
+    ),
+  },
+  {
+    heading: 'No warranty',
+    body: (
+      <>
+        The service is provided as is, without warranty of any kind, express or implied. While it
+        is built on your browser&apos;s Web Crypto API and enforces a minimum entropy floor, we make
+        no guarantee that a generated password will be accepted by any particular service, nor that
+        it is suitable for any particular system. Availability is not promised.
+      </>
+    ),
+  },
+  {
+    heading: 'Limitation of liability',
+    body: (
+      <>
+        To the maximum extent permitted by law, the operators of this service are not liable for
+        any loss or damage arising from use of it, including any loss of accounts, data, or revenue.
+        Some jurisdictions do not allow certain exclusions, so parts of this section may not apply to
+        you.
+      </>
+    ),
+  },
+  {
+    heading: 'Acceptable use',
+    body: (
+      <>
+        The service is offered for generating your own credentials. Do not use it to attack systems
+        you do not own, to attempt bulk account creation, or to circumvent rate limits. Automated
+        scraping of this site is not permitted.
+      </>
+    ),
+  },
+  {
+    heading: 'Intellectual property',
+    body: (
+      <>
+        SecPassGen is open source. The source code is published on GitHub under the licence stated in
+        the repository. The name and marks belong to their respective owners.
+      </>
+    ),
+  },
+  {
+    heading: 'Changes',
+    body: (
+      <>
+        These terms may be updated as the service changes. Continued use after an update means you
+        accept the revised terms.
+      </>
+    ),
+  },
+]
 
-                <header className="space-y-6">
-                    <h1 className="text-5xl font-bold tracking-tighter">Terms of Service</h1>
-                    <p className="text-white/40 text-lg">Operating guidelines for the world&apos;s most secure utility. Last updated: January 24, 2026</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8">
-                        {[
-                            { icon: Gavel, label: 'Legal Binding' },
-                            { icon: Scale, label: 'Fair Use' },
-                            { icon: FileText, label: 'Audit Ready' },
-                            { icon: CheckCircle, label: 'Compliance' }
-                        ].map((f, i) => (
-                            <div key={i} className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
-                                <f.icon className="h-5 w-5 text-white/60" />
-                                <span className="text-[10px] uppercase tracking-widest font-bold text-white/40">{f.label}</span>
-                            </div>
-                        ))}
-                    </div>
-                </header>
+export default function TermsPage() {
+  const [isDarkMode, setIsDarkMode] = useState(true)
 
-                <section className="space-y-12 text-white/60 leading-relaxed text-lg">
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">Provision of Security Services</h2>
-                        <p>
-                            SecPassGen Pro provides a <strong>free online password generator</strong> service designed for <strong>cybersecurity professionals</strong>
-                            and privacy-conscious individuals. By accessing our <strong>secure password tool</strong>, you acknowledge that you are using
-                            institutional-grade <strong>random password generation</strong> technology at your own discretion.
-                        </p>
-                    </div>
+  const line = isDarkMode ? 'border-white/10' : 'border-black/10'
+  const dim = isDarkMode ? 'text-white/60' : 'text-black/60'
+  const body = isDarkMode ? 'text-white/85' : 'text-black/85'
+  const bg = isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
 
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">Responsible & Ethical Conduct</h2>
-                        <p>
-                            Users are strictly prohibited from using our <strong>unique password generation</strong> service for malicious activities,
-                            including but not limited to automated brute-force attacks, credentials stuffing, or illegal system testing.
-                            Our <strong>brute-force resistant technology</strong> is intended solely for defensive <strong>identity protection</strong>.
-                        </p>
-                    </div>
+  return (
+    <div className={`relative min-h-screen ${bg}`}>
+      <div
+        className="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, rgb(var(--track) / var(--grid)) 1px, transparent 1px),' +
+            'linear-gradient(to bottom, rgb(var(--track) / var(--grid)) 1px, transparent 1px)',
+          backgroundSize: '64px 64px',
+        }}
+      />
 
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">Limitation of Warranty</h2>
-                        <p>
-                            While we utilize <strong>cryptographically secure algorithms</strong> and local-first encryption, SDAD.pro provides this
-                            utility on an &quot;as-is&quot; and &quot;as-available&quot; basis. We do not guarantee the perpetual availability of the service, nor are we
-                            liable for any damages resulting from the loss or compromised state of <strong>generated passwords</strong> managed by the user.
-                        </p>
-                    </div>
+      <main
+        className="relative mx-auto max-w-3xl px-5 py-14 sm:px-8 sm:py-20"
+        style={
+          {
+            '--track': isDarkMode ? '255 255 255' : '0 0 0',
+            '--grid': isDarkMode ? '0.045' : '0.05',
+            '--signal': isDarkMode ? '214 137 62' : '143 94 36',
+          } as React.CSSProperties
+        }
+      >
+        <Link
+          href="/"
+          className={`text-[10px] uppercase tracking-[0.16em] ${dim} transition-colors hover:text-white`}
+        >
+          &larr; SecPassGen
+        </Link>
 
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">Open Source & Transparency</h2>
-                        <p>
-                            We believe in the power of the community. As an <strong>open-source security project</strong>, we encourage users to
-                            audit our source code on <strong>GitHub</strong> to verify our cryptographic implementations and <strong>privacy protections</strong>.
-                            Our <strong>technical documentation</strong> is publicly available for peer review.
-                        </p>
-                    </div>
-                </section>
+        <h1 className="mt-8 text-4xl font-semibold tracking-[-0.02em] sm:text-5xl">Terms</h1>
+        <p className={`mt-4 text-lg leading-relaxed ${dim}`}>
+          The short version: use it to generate passwords, do not expect us to recover them, and
+          understand that we provide it without warranty.
+        </p>
 
-                <footer className="pt-12 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-white/20 text-xs">
-                    <span>&copy; 2026 SecPassGen Pro by SDAD.pro</span>
-                    <Link href="https://sdad.pro" className="hover:text-white transition-colors">Enterprise Security: SDAD.pro</Link>
-                </footer>
-            </motion.div>
+        <div className="mt-12 space-y-10">
+          {SECTIONS.map((s) => (
+            <section key={s.heading}>
+              <h2 className={`text-xl font-medium tracking-tight ${body}`}>{s.heading}</h2>
+              <p className={`mt-3 text-[15px] leading-relaxed ${dim}`}>{s.body}</p>
+            </section>
+          ))}
         </div>
-    )
+
+        <footer className={`mt-16 border-t ${line} pt-6`}>
+          <div className="flex items-center justify-between">
+            <Link href="/privacy" className={`text-[10px] uppercase tracking-[0.16em] ${dim} hover:text-white`}>
+              Privacy
+            </Link>
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={`text-[10px] uppercase tracking-[0.16em] ${dim} hover:text-white`}
+            >
+              {isDarkMode ? 'Light' : 'Dark'} theme
+            </button>
+          </div>
+        </footer>
+      </main>
+    </div>
+  )
 }

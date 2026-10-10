@@ -1,85 +1,215 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Shield, Lock, EyeOff, Key } from 'lucide-react'
 
-export default function PrivacyPolicy() {
-    return (
-        <div className="min-h-screen bg-black text-white p-6 sm:p-24 selection:bg-white selection:text-black">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-3xl mx-auto space-y-16"
-            >
-                <Link href="/" className="inline-flex items-center gap-2 text-white/40 hover:text-white transition-all hover:-translate-x-1">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Home
-                </Link>
+interface QA {
+  q: string
+  a: React.ReactNode
+}
 
-                <header className="space-y-6">
-                    <h1 className="text-5xl font-bold tracking-tighter">Privacy Policy</h1>
-                    <p className="text-white/40 text-lg">Your data sovereignty is our mandate. Last updated: January 24, 2026</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8">
-                        {[
-                            { icon: Shield, label: 'Zero Logs' },
-                            { icon: Lock, label: 'Client-Side' },
-                            { icon: EyeOff, label: 'Anonymous' },
-                            { icon: Key, label: 'Encrypted' }
-                        ].map((f, i) => (
-                            <div key={i} className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
-                                <f.icon className="h-5 w-5 text-white/60" />
-                                <span className="text-[10px] uppercase tracking-widest font-bold text-white/40">{f.label}</span>
-                            </div>
-                        ))}
-                    </div>
-                </header>
+const QA_BLOCKS: { question: string; answer: string }[] = [
+  {
+    question: 'Does SecPassGen store my passwords?',
+    answer:
+      'No. Passwords are created by your own browser using the Web Crypto API and are never transmitted to us. We operate no database, so there is no record of any password to disclose, sell, or lose.',
+  },
+  {
+    question: 'Can you recover a password for me?',
+    answer:
+      'No, and that is deliberate. Because we never receive the password, we hold nothing that could be returned. A service that could recover your password is a service that had your password.',
+  },
+  {
+    question: 'Does the page send anything to your server?',
+    answer:
+      'Once the page has loaded, it makes no network requests at all. The page displays a live count of data requests measured by your own browser, and it reads zero. If that number were ever anything else, the claim would visibly stop being true.',
+  },
+  {
+    question: 'What is the entropy floor?',
+    answer:
+      'Every password is held to a minimum of 60 bits of entropy, measured as length times log2 of the alphabet size. A password below that is refused rather than served. At or above it, the chance of a repeat is small enough to be unobservable, which is why no stored list of issued passwords is needed.',
+  },
+  {
+    question: 'What is the Recent panel?',
+    answer:
+      'A short history kept only in your browser, encrypted with AES-GCM, holding at most 10 entries and expiring after 24 hours. It is never uploaded. Clearing your browser data removes it.',
+  },
+  {
+    question: 'Do you use analytics or tracking?',
+    answer:
+      'None. There is no analytics script, no tracking pixel, no cookie, and no third-party request of any kind on this site.',
+  },
+]
 
-                <section className="space-y-12 text-white/60 leading-relaxed text-lg">
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">Advanced Cryptographic Generation</h2>
-                        <p>
-                            SecPassGen Pro leverages high-entropy PRNG (Pseudo-Random Number Generation) to create <strong>cryptographically secure passwords</strong>.
-                            Character selection uses the Web Crypto API with rejection sampling, so every character is drawn uniformly with no bias toward
-                            low indices. Every password you receive is held to a <strong>minimum 60-bit entropy floor</strong>, which is what makes a repeat
-                            unobservable rather than merely unlikely.
-                        </p>
-                    </div>
+const NOT_STORED: [string, string][] = [
+  ['Passwords', 'Never transmitted, never persisted anywhere'],
+  ['Generated history', 'Browser only, encrypted, 24 hour expiry'],
+  ['Accounts', 'None exist. There is nothing to sign up for'],
+  ['Usage analytics', 'Not collected in any form'],
+  ['Cookies', 'None set by this site'],
+  ['Advertising identifiers', 'Not used'],
+]
 
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">Zero-Knowledge Architecture</h2>
-                        <p>
-                            Our <strong>secure password generator</strong> is built on a zero-knowledge framework. When you generate a <strong>strong random password</strong>,
-                            it is created inside your browser and it <strong>never leaves your device</strong>. It is never transmitted to us, never logged, never
-                            cached, and never stored on a server. We operate no database and hold no record of any password, so there is nothing for anyone to obtain
-                            from us, including us.
-                        </p>
-                    </div>
+export default function PrivacyPage() {
+  const [isDarkMode, setIsDarkMode] = useState(true)
 
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">Local-First Encrypted History</h2>
-                        <p>
-                            Your personal <strong>password history</strong> is protected by institutional-grade security. Data is stored within your browser&apos;s
-                            Secure Context using the <strong>Web Crypto API</strong>. This history is encrypted with a device-specific key that never leaves your machine.
-                            To further enhance your <strong>online security</strong>, all stored items automatically expire and are purged after 24 hours.
-                        </p>
-                    </div>
+  const line = isDarkMode ? 'border-white/10' : 'border-black/10'
+  const dim = isDarkMode ? 'text-white/60' : 'text-black/60'
+  const body = isDarkMode ? 'text-white/85' : 'text-black/85'
+  const bg = isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
 
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">Anonymized Telemetry &amp; SEO Integrity</h2>
-                        <p>
-                            We prioritize transparency. Because generation happens entirely on your machine, we collect <strong>no usage telemetry whatsoever</strong>:
-                            no request logs, no client addresses, and no counters. There is no analytics script on this page. This ensures our <strong>online security tool</strong> remains fast and reliable for all users
-                            while maintaining the highest standards of data protection and <strong>search engine visibility</strong>.
-                        </p>
-                    </div>
-                </section>
+  return (
+    <div className={`relative min-h-screen ${bg}`}>
+      <div
+        className="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, rgb(var(--track) / var(--grid)) 1px, transparent 1px),' +
+            'linear-gradient(to bottom, rgb(var(--track) / var(--grid)) 1px, transparent 1px)',
+          backgroundSize: '64px 64px',
+        }}
+      />
 
-                <footer className="pt-12 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-white/20 text-xs">
-                    <span>&copy; 2026 SecPassGen Pro by SDAD.pro</span>
-                    <Link href="https://sdad.pro" className="hover:text-white transition-colors">Main Domain: SDAD.pro</Link>
-                </footer>
-            </motion.div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: QA_BLOCKS.map((item) => ({
+              '@type': 'Question',
+              name: item.question,
+              acceptedAnswer: { '@type': 'Answer', text: item.answer },
+            })),
+          }),
+        }}
+      />
+
+      <main
+        className="relative mx-auto max-w-3xl px-5 py-14 sm:px-8 sm:py-20"
+        style={
+          {
+            '--track': isDarkMode ? '255 255 255' : '0 0 0',
+            '--grid': isDarkMode ? '0.045' : '0.05',
+            '--signal': isDarkMode ? '214 137 62' : '143 94 36',
+          } as React.CSSProperties
+        }
+      >
+        <Link
+          href="/"
+          className={`text-[10px] uppercase tracking-[0.16em] ${dim} transition-colors hover:text-white`}
+        >
+          &larr; SecPassGen
+        </Link>
+
+        <h1 className="mt-8 text-4xl font-semibold tracking-[-0.02em] sm:text-5xl">Privacy</h1>
+        <p className={`mt-4 text-lg leading-relaxed ${dim}`}>
+          SecPassGen has nothing to disclose, because it keeps nothing. This page states exactly
+          what that means, including the parts that are less flattering.
+        </p>
+
+        <section className={`mt-10 rounded-xl border ${line} ${isDarkMode ? 'bg-white/[0.02]' : 'bg-black/[0.01]'}`}>
+          <h2 className="px-5 pt-5 text-[10px] uppercase tracking-[0.16em] text-[rgb(var(--signal))]">
+            In short
+          </h2>
+          <p className={`px-5 pb-5 pt-3 text-[15px] leading-relaxed ${body}`}>
+            Passwords are generated on your device and never leave it. There is no database, no
+            account, no analytics, and no cookie. After the page loads it makes zero network
+            requests, and the page shows you that count live.
+          </p>
+        </section>
+
+        <h2 className={`mt-14 text-2xl font-medium tracking-tight ${body}`}>What is not stored</h2>
+        <div className={`mt-4 overflow-hidden rounded-xl border ${line}`}>
+          <dl>
+            {NOT_STORED.map(([k, v], i) => (
+              <div
+                key={k}
+                className={`px-5 py-3.5 ${i > 0 ? `border-t ${line}` : ''}`}
+              >
+                <dt className={`text-[13px] font-medium ${body}`}>{k}</dt>
+                <dd className={`mt-0.5 text-[13px] ${dim}`}>{v}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-    )
+
+        <h2 className={`mt-14 text-2xl font-medium tracking-tight ${body}`}>Common questions</h2>
+        <div className="mt-4 space-y-2.5">
+          {QA_BLOCKS.map((item) => (
+            <details key={item.question} className={`group rounded-xl border ${line} px-5 py-4`}>
+              <summary
+                className={`cursor-pointer list-none text-[15px] font-medium marker:hidden ${body}`}
+              >
+                <span className="mr-2 text-[rgb(var(--signal))]">+</span>
+                {item.question}
+              </summary>
+              <p className={`mt-3 text-[14px] leading-relaxed ${dim}`}>{item.answer}</p>
+            </details>
+          ))}
+        </div>
+
+        <h2 className={`mt-14 text-2xl font-medium tracking-tight ${body}`}>
+          The parts worth being honest about
+        </h2>
+
+        <div className="mt-4 space-y-5">
+          <div className={`rounded-xl border ${line} p-5`}>
+            <h3 className={`text-[15px] font-medium ${body}`}>Your host still sees the request</h3>
+            <p className={`mt-2 ${dim}`}>
+              This site is served by Vercel. Like any web host, Vercel may process standard
+              request metadata such as IP address and user agent in order to deliver files. That is
+              infrastructure, not product analytics, and we cannot switch it off from here. It
+              matters only in one respect, and that respect is favourable: the traffic contains no
+              password, because no password is ever sent.
+            </p>
+          </div>
+
+          <div className={`rounded-xl border ${line} p-5`}>
+            <h3 className={`text-[15px] font-medium ${body}`}>
+              Local history is obfuscated, not vaulted
+            </h3>
+            <p className={`mt-2 ${dim}`}>
+              The Recent panel is encrypted with AES-GCM, but the key is derived from a coarse
+              device fingerprint such as browser language and screen size. That is enough to stop
+              casual inspection of browser storage. It is not protection against someone who
+              already has your machine. We would rather say this plainly than let the word
+              &quot;encrypted&quot; imply more than it delivers here.
+            </p>
+          </div>
+
+          <div className={`rounded-xl border ${line} p-5`}>
+            <h3 className={`text-[15px] font-medium ${body}`}>Your clipboard is yours</h3>
+            <p className={`mt-2 ${dim}`}>
+              Copying puts the password on your system clipboard, where other software may be able
+              to read it. We cannot control that, and it is the main practical way a generated
+              password can leak. Paste it into a password manager and clear your clipboard when you
+              are done.
+            </p>
+          </div>
+        </div>
+
+        <h2 className={`mt-14 text-2xl font-medium tracking-tight ${body}`}>Changes</h2>
+        <p className={`mt-3 text-[14px] leading-relaxed ${dim}`}>
+          This policy describes the service as it actually behaves. If the behaviour ever changes,
+          this page changes with it, in the same commit.
+        </p>
+
+        <footer className={`mt-16 border-t ${line} pt-6`}>
+          <div className="flex items-center justify-between">
+            <Link href="/terms" className={`text-[10px] uppercase tracking-[0.16em] ${dim} hover:text-white`}>
+              Terms
+            </Link>
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={`text-[10px] uppercase tracking-[0.16em] ${dim} hover:text-white`}
+            >
+              {isDarkMode ? 'Light' : 'Dark'} theme
+            </button>
+          </div>
+        </footer>
+      </main>
+    </div>
+  )
 }

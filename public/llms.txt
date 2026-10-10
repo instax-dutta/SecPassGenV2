@@ -1,0 +1,47 @@
+# SecPassGen
+
+> A free, browser-only password generator. Passwords are created on the user's device with the Web Crypto API and are never transmitted, logged, or stored. No account, no database, no analytics, no cookies.
+
+## What it does
+
+Generates cryptographically random passwords from a 90-symbol alphabet (uppercase, lowercase, digits, and 28 punctuation symbols). Character selection uses rejection sampling over `crypto.getRandomValues`, so every character is uniformly distributed with no bias toward low indices.
+
+## The entropy floor
+
+Every configuration below **60 bits of entropy** is refused rather than served. Entropy is `length x log2(alphabet size)`, and the minimum length is derived per configuration: 10 characters for the full alphabet, 11 for alphanumeric, 13 for letters only, 19 for digits only.
+
+This is what makes a repeat unobservable without any stored list of issued passwords. Collision probability for a uniform draw after `k` earlier passwords is approximately `k / 2^H`. At 16 characters over the full alphabet, H = 103.9 bits, so repeats are unobservable without a lookup.
+
+## Uniqueness without a database
+
+SecPassGen stores nothing, so it does not check for duplicates against storage. Uniqueness is established arithmetically by the entropy floor. A secondary in-memory ring of 256 password hashes prevents one browser session from ever being shown the same password twice. That ring never leaves the browser and does not survive a reload.
+
+## Privacy properties
+
+- No server-side generation. The password is created in the browser.
+- No database, no account, no user record.
+- After page load, the site makes **zero network requests**. A live counter rendered in the interface reports this, measured from the browser's own Resource Timing entries.
+- No analytics, no tracking pixel, no cookie, no third-party request.
+- Local history, if used, is encrypted with AES-GCM, capped at 10 entries, and expires after 24 hours.
+
+### Known limitations, stated plainly
+
+- **The host still sees requests.** The site is served by Vercel, which may process standard request metadata such as IP address and user agent in order to deliver files. This is infrastructure rather than product analytics. The traffic contains no password, because no password is ever sent.
+- **Local history is obfuscated, not vaulted.** Its AES-GCM key is derived from a coarse device fingerprint (browser language, screen size). This stops casual inspection of browser storage but is not protection against someone who already has the machine.
+- **The clipboard is a leak surface.** Copying places the password on the system clipboard, where other software may read it.
+
+## Pages
+
+- [Home](/): the generator
+- [Privacy](/privacy): what is and is not collected
+- [Terms](/terms): scope, warranty, and acceptable use
+- [llms.txt](/llms.txt): this file
+- [llms-full.txt](/llms-full.txt): the same content as prose
+
+## Not this product
+
+SecPassGen is not a password manager, does not sync or autofill, does not audit existing passwords against breach databases, and cannot recover a lost password by design.
+
+## Source
+
+Open source at https://github.com/instax-dutta/SecPassGenV2
