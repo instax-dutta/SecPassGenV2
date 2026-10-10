@@ -4,71 +4,66 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Copy, RefreshCw, Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { addToHistory } from '@/lib/passwordHistory'
 import { SessionDedup } from '@/lib/sessionDedup'
-import { MIN_ENTROPY_BITS, MIN_LENGTH, buildCharset, meetsEntropyFloor, minimumLengthForFlags, totalEntropy } from '@/lib/entropy'
+import { MIN_ENTROPY_BITS, MIN_LENGTH, MAX_LENGTH, buildCharset, meetsEntropyFloor, minimumLengthForFlags, totalEntropy } from '@/lib/entropy'
 import { generatePassword } from '@/lib/random'
+import EntropyMeter from './EntropyMeter'
 import CustomCheckbox from './CustomCheckbox'
 
 const MAX_LENGTH_UI = 64
 const MAX_GENERATION_ATTEMPTS = 8
+
+const GROUPS: { key: string; label: string }[] = [
+  { key: 'Uppercase', label: 'A-Z' },
+  { key: 'Lowercase', label: 'a-z' },
+  { key: 'Numbers', label: '0-9' },
+  { key: 'Symbols', label: '!@#' },
+]
 
 interface PasswordGeneratorProps {
   isDarkMode: boolean
 }
 
 export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps) {
-  const [passwords, setPasswords] = useState<string[]>([])
+  const [password, setPassword] = useState<string | null>(null)
   const [length, setLength] = useState(16)
   const [includeUppercase, setIncludeUppercase] = useState(true)
   const [includeLowercase, setIncludeLowercase] = useState(true)
   const [includeNumbers, setIncludeNumbers] = useState(true)
   const [includeSymbols, setIncludeSymbols] = useState(true)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const [copied, setCopied] = useState(false)
 
-  // Randomness above the entropy floor already makes a repeat unobservable, so
-  // this ring only has to cover the case entropy cannot: the same visitor
-  // pressing generate twice in one sitting.
   const sessionDedup = useRef<SessionDedup | null>(null)
   if (sessionDedup.current === null) {
     sessionDedup.current = new SessionDedup()
   }
 
   const flags = useMemo(
-    () => ({
-      includeUppercase,
-      includeLowercase,
-      includeNumbers,
-      includeSymbols,
-    }),
+    () => ({ includeUppercase, includeLowercase, includeNumbers, includeSymbols }),
     [includeUppercase, includeLowercase, includeNumbers, includeSymbols]
   )
 
-  // Mirrors the server-side floor so the control never offers a configuration
-  // the API will reject.
   const minimumLength = useMemo(() => {
     const required = minimumLengthForFlags(flags)
     return Number.isFinite(required) ? Math.max(MIN_LENGTH, required) : MIN_LENGTH
   }, [flags])
 
-  const entropyBits = useMemo(() => totalEntropy(flags, length), [flags, length])
+  const bits = useMemo(() => totalEntropy(flags, length), [flags, length])
+  const alphabetSize = useMemo(() => buildCharset(flags).length, [flags])
 
   useEffect(() => {
     setLength((previous) => Math.max(previous, minimumLength))
   }, [minimumLength])
 
-  // Generated entirely in the browser. The password is never sent anywhere:
-  // there is no API route, no database, and no network request involved.
-  const generatePasswords = async () => {
+  const generate = async () => {
     setIsGenerating(true)
-
     try {
       if (!meetsEntropyFloor(flags, length)) {
-        toast.error(`Too weak: ${totalEntropy(flags, length).toFixed(1)} bits is below the ${MIN_ENTROPY_BITS} bit floor.`)
+        toast.error(`Too weak: ${bits.toFixed(1)} bits is below the ${MIN_ENTROPY_BITS} bit floor.`)
         return
       }
 
@@ -77,9 +72,7 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
 
       for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS && accepted === null; attempt++) {
         const candidate = generatePassword(charset, length)
-        if (await sessionDedup.current!.admit(candidate)) {
-          accepted = candidate
-        }
+        if (await sessionDedup.current!.admit(candidate)) accepted = candidate
       }
 
       if (accepted === null) {
@@ -87,9 +80,9 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
         return
       }
 
-      setPasswords([accepted])
+      setPassword(accepted)
+      setCopied(false)
       await addToHistory(accepted, length)
-      toast.success('Generated new password')
     } catch (error) {
       toast.error('Generation failed')
       console.error('Generation error:', error)
@@ -98,164 +91,195 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
     }
   }
 
-  const copyToClipboard = async (password: string, index: number) => {
+  const copy = async () => {
+    if (!password) return
     try {
       await navigator.clipboard.writeText(password)
-      setCopiedIndex(index)
+      setCopied(true)
       toast.success('Copied')
-      setTimeout(() => setCopiedIndex(null), 2000)
-    } catch (error) {
+      setTimeout(() => setCopied(false), 2400)
+    } catch {
       toast.error('Copy failed')
     }
   }
 
+  const line = isDarkMode ? 'border-white/10' : 'border-black/10'
+  const dim = isDarkMode ? 'text-white/60' : 'text-black/60'
+  const body = isDarkMode ? 'text-white/85' : 'text-black/85'
+
+
   return (
     <motion.div
-      initial={{ y: 20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="w-full space-y-6"
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      className={`rounded-2xl border backdrop-blur-xl ${line} ${
+        isDarkMode ? 'bg-white/[0.03]' : 'bg-black/[0.02]'
+      }`}
     >
-      {/* Main Generator Card */}
-      <div className={`rounded-2xl p-6 sm:p-8 border backdrop-blur-xl transition-all duration-700 ${isDarkMode
-        ? 'bg-white/5 border-white/10'
-        : 'bg-black/5 border-black/10'
-        }`}>
-
-        {/* Password Display */}
-        <div className="mb-6 space-y-3">
-          <AnimatePresence mode="wait">
-            {passwords.length === 0 ? (
-              <motion.div
-                key="placeholder"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className={`h-14 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors duration-700 ${isDarkMode ? 'border-white/10 text-white/30' : 'border-black/10 text-black/30'
-                  }`}
-              >
-                <span className="text-sm">Generate a password to begin</span>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="result"
-                initial={{ opacity: 0, y: -10 }}
+      {/* Readout ------------------------------------------------------ */}
+      <div className="p-5 sm:p-6">
+        <div className="mb-2.5 flex items-baseline justify-between">
+          <span className={`text-[9px] uppercase tracking-[0.18em] ${dim}`}>Your password</span>
+          <AnimatePresence>
+            {copied && (
+              <motion.span
+                initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="flex items-center gap-2 group"
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="readout text-[9px] uppercase tracking-[0.18em] text-[rgb(var(--signal))]"
               >
-                <Input
-                  type="text"
-                  value={passwords[0]}
-                  readOnly
-                  className={`font-mono text-base border-2 transition-all duration-300 ${isDarkMode
-                    ? 'bg-white/5 text-white border-white/10 hover:border-white/20 focus:border-white/30'
-                    : 'bg-black/5 text-black border-black/10 hover:border-black/20 focus:border-black/30'
-                    }`}
-                />
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
-                    onClick={() => copyToClipboard(passwords[0], 0)}
-                    size="lg"
-                    className={`transition-all duration-300 ${copiedIndex === 0
-                      ? 'bg-green-500 hover:bg-green-600 text-white'
-                      : isDarkMode
-                        ? 'bg-white text-black hover:bg-white/90'
-                        : 'bg-black text-white hover:bg-black/90'
-                      }`}
-                  >
-                    {copiedIndex === 0 ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
-                </motion.div>
-              </motion.div>
+                Copied
+              </motion.span>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Generate Button */}
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button
-            onClick={generatePasswords}
-            disabled={isGenerating}
-            size="lg"
-            className={`w-full mb-6 text-base font-semibold transition-all duration-300 ${isDarkMode
-              ? 'bg-white text-black hover:bg-white/90'
-              : 'bg-black text-white hover:bg-black/90'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-5 w-5" />
-                Generate Password
-              </>
-            )}
-          </Button>
-        </motion.div>
+        <div className="flex items-stretch gap-2">
+          <div className="min-w-0 flex-1">
+            <AnimatePresence mode="wait" initial={false}>
+              {password === null ? (
+                <motion.div
+                  key="idle"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={`readout flex h-[52px] items-center rounded-lg border border-dashed px-3.5 text-[13px] ${line} ${dim}`}
+                >
+                  Press generate to draw one
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="value"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  className={`readout-display flex h-[52px] items-center overflow-x-auto rounded-lg border px-3.5 font-mono text-[15px] sm:text-[17px] leading-none ${line} ${
+                    isDarkMode ? 'bg-white/[0.04] text-white' : 'bg-black/[0.03] text-black'
+                  }`}
+                >
+                  <input
+                    readOnly
+                    value={password}
+                    aria-label="Generated password"
+                    onFocus={(e) => e.currentTarget.select()}
+                    className="w-full bg-transparent outline-none"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
-        {/* Length Slider */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-3">
-            <label className={`text-sm font-semibold ${isDarkMode ? 'text-white/70' : 'text-black/70'}`}>
-              Length
-            </label>
-            <span className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
+          <Button
+            onClick={copy}
+            disabled={password === null}
+            aria-label="Copy password"
+            className={`h-[52px] w-[52px] shrink-0 rounded-lg border transition-all duration-200 ${
+              copied
+                ? 'border-[rgb(var(--signal))] bg-[rgb(var(--signal))] text-black'
+                : password === null
+                  ? `border-transparent ${isDarkMode ? 'bg-white/[0.02] text-white/15' : 'bg-black/[0.01] text-black/15'}`
+                  : isDarkMode
+                    ? 'border-white/15 bg-transparent text-white/70 hover:border-white/35 hover:bg-white/[0.05] hover:text-white'
+                    : 'border-black/15 bg-transparent text-black/70 hover:border-black/35 hover:bg-black/[0.04] hover:text-black'
+            }`}
+          >
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Action ------------------------------------------------------- */}
+      <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+        <Button
+          onClick={generate}
+          disabled={isGenerating}
+          className={`h-11 w-full rounded-lg text-[13px] font-medium tracking-wide transition-all duration-200 ${
+            isDarkMode ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'
+          } disabled:opacity-60`}
+        >
+          {isGenerating ? (
+            <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <RefreshCw className="mr-2 h-3.5 w-3.5" />
+          )}
+          Generate Password
+        </Button>
+      </div>
+
+      {/* Instrumentation ----------------------------------------------- */}
+      <div className={`border-t px-5 py-5 sm:px-6 ${line}`}>
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <div className={`mb-1.5 text-[9px] uppercase tracking-[0.18em] ${dim}`}>Length</div>
+            <div className={`readout text-2xl font-medium leading-none ${body}`}>
               {length}
-            </span>
+              <span className={`ml-1 text-[11px] font-normal ${dim}`}>chars</span>
+            </div>
           </div>
-          <Slider
-            value={[length]}
-            onValueChange={(value) => setLength(value[0])}
-            max={MAX_LENGTH_UI}
-            min={minimumLength}
-            step={1}
-            className="w-full"
-          />
-          <div className="flex justify-between mt-1">
-            <span className={`text-xs ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>{minimumLength}</span>
-            <span className={`text-xs ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>
-              {entropyBits.toFixed(0)} bits
-            </span>
-            <span className={`text-xs ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>{MAX_LENGTH_UI}</span>
+          <div className="text-right">
+            <div className={`mb-1.5 text-[9px] uppercase tracking-[0.18em] ${dim}`}>Entropy</div>
+            <div className="readout text-2xl font-medium leading-none text-[rgb(var(--signal))]">
+              {bits.toFixed(0)}
+              <span className="ml-1 text-[11px] font-normal tracking-wide">bits</span>
+            </div>
           </div>
-          <p className={`mt-2 text-[10px] ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>
-            Minimum {minimumLength} characters keeps this above {MIN_ENTROPY_BITS} bits of entropy.
+        </div>
+
+        <Slider
+          value={[length]}
+          onValueChange={(value) => setLength(value[0])}
+          min={minimumLength}
+          max={MAX_LENGTH_UI}
+          step={1}
+          aria-label="Password length"
+          className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4 [&_[role=slider]]:bg-white [&_[role=slider]]:border-0 [&_[role=slider]]:shadow-[0_0_0_4px_rgba(255,255,255,0.06)]"
+        />
+        <div className={`mt-1.5 flex justify-between text-[10px] ${dim}`}>
+          <span className="readout">{minimumLength}</span>
+          <span className="readout">{MAX_LENGTH_UI}</span>
+        </div>
+
+        <div className="mt-5">
+          <EntropyMeter bits={bits} isDarkMode={isDarkMode} />
+          {/* States the derivation so the bits figure can be checked rather
+              than taken on faith, and the guarantee in the same breath. */}
+          <p className={`mt-3 text-[11px] leading-snug ${dim}`}>
+            {length} characters from a {alphabetSize}-symbol alphabet. The {MIN_ENTROPY_BITS}-bit floor is
+            always enforced, so nothing weaker can reach you.
           </p>
         </div>
+      </div>
 
+      {/* Alphabet ------------------------------------------------------- */}
+      <div className={`grid grid-cols-4 border-t ${line}`}>
+        {GROUPS.map((group, i) => {
+          const setter = {
+            Uppercase: setIncludeUppercase,
+            Lowercase: setIncludeLowercase,
+            Numbers: setIncludeNumbers,
+            Symbols: setIncludeSymbols,
+          }[group.key]!
+          const active = flags[`include${group.key}` as keyof typeof flags]
 
-        {/* Character Options */}
-        <div className="grid grid-cols-2 gap-4">
-          <CustomCheckbox
-            label="Uppercase"
-            checked={includeUppercase}
-            onChange={setIncludeUppercase}
-            isDarkMode={isDarkMode}
-          />
-          <CustomCheckbox
-            label="Lowercase"
-            checked={includeLowercase}
-            onChange={setIncludeLowercase}
-            isDarkMode={isDarkMode}
-          />
-          <CustomCheckbox
-            label="Numbers"
-            checked={includeNumbers}
-            onChange={setIncludeNumbers}
-            isDarkMode={isDarkMode}
-          />
-          <CustomCheckbox
-            label="Symbols"
-            checked={includeSymbols}
-            onChange={setIncludeSymbols}
-            isDarkMode={isDarkMode}
-          />
-        </div>
+          return (
+            <div
+              key={group.key}
+              className={`px-3 py-3 ${i > 0 ? `border-l ${line}` : ''}`}
+            >
+              <CustomCheckbox
+                label={group.label}
+                title={group.key}
+                checked={active}
+                onChange={setter}
+                isDarkMode={isDarkMode}
+              />
+            </div>
+          )
+        })}
       </div>
     </motion.div>
   )

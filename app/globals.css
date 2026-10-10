@@ -57,27 +57,17 @@ body {
 }
 
 @layer base {
+  /* ---------------------------------------------------------------
+     Instrument tokens.
+     One accent, one job: it marks measurement, never warning. The
+     entropy floor means a weak password is not reachable here, so
+     the interface has no use for a danger colour and does not carry one.
+     --------------------------------------------------------------- */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 40%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 0%;
-    --radius: 0.75rem;
+    --signal: 214 137 62;
+    --signal-soft: 232 181 99;
+    --track: 0 0 0;
+    --grid: 0.07;
   }
 
   .dark {
@@ -100,7 +90,65 @@ body {
     --border: 0 0% 10%;
     --input: 0 0% 10%;
     --ring: 0 0% 100%;
+    --signal: 214 137 62;
+    --track: 255 255 255;
+    --grid: 0.045;
   }
+}
+
+/* ---------------------------------------------------------------
+   Entropy meter. Segmented rather than continuous so the floor can
+   be marked as a fixed position on a scale, not as a colour change.
+   --------------------------------------------------------------- */
+.meter-track {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+}
+
+.meter-seg {
+  flex: 1 1 0;
+  height: 7px;
+  border-radius: 1px;
+  background: rgb(var(--track) / 0.08);
+  transition: background-color 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.meter-seg[data-filled='true'] {
+  background: rgb(var(--signal));
+}
+
+/* Below the floor the bar is still filled, just recessed. Making it empty
+   instead would break the scale into two disconnected pieces and read as a
+   floating fragment rather than a gauge growing. */
+.meter-seg[data-filled='true'][data-below-floor='true'] {
+  background: rgb(var(--signal) / 0.34);
+}
+
+.meter-floor {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: rgb(var(--track) / 0.4);
+}
+
+/* Password readout: the one place tracking is loosened, because a
+   64 character string set solid reads as a wall of noise. */
+.readout {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.readout-display {
+  letter-spacing: 0.06em;
+}
+
+/* Hide number input spinners, they add noise and change nothing */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 @layer base {

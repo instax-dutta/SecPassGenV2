@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { History, Trash2, Copy, Check, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { getHistory, clearHistory, isHistoryAvailable, addToHistory } from '@/lib/passwordHistory'
+import { getHistory, clearHistory, isHistoryAvailable, addToHistory, HISTORY_CHANGED } from '@/lib/passwordHistory'
 import type { PasswordHistoryItem } from '@/lib/passwordHistory'
 
 interface PasswordHistoryProps {
@@ -24,6 +24,19 @@ export default function PasswordHistory({ isDarkMode }: PasswordHistoryProps) {
         }
     }, [])
 
+    // The generator writes history from outside this component, so without this
+    // the panel stayed on "No history yet" forever while the page claimed an
+    // encrypted local history. That contradiction is worse than no panel.
+    useEffect(() => {
+        const onChange = () => { loadHistory() }
+        window.addEventListener(HISTORY_CHANGED, onChange)
+        window.addEventListener('storage', onChange)
+        return () => {
+            window.removeEventListener(HISTORY_CHANGED, onChange)
+            window.removeEventListener('storage', onChange)
+        }
+    }, [])
+
     const loadHistory = async () => {
         const items = await getHistory()
         setHistory(items)
@@ -31,7 +44,6 @@ export default function PasswordHistory({ isDarkMode }: PasswordHistoryProps) {
 
     const handleClear = () => {
         clearHistory()
-        setHistory([])
         toast.success('History cleared')
     }
 
@@ -67,7 +79,7 @@ export default function PasswordHistory({ isDarkMode }: PasswordHistoryProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className={`h-full rounded-2xl p-6 backdrop-blur-xl border shadow-xl ${isDarkMode
+            className={`flex h-full flex-col rounded-2xl border p-6 backdrop-blur-xl ${isDarkMode
                     ? 'bg-black/40 border-white/10'
                     : 'bg-white/60 border-black/10'
                 }`}
@@ -85,8 +97,8 @@ export default function PasswordHistory({ isDarkMode }: PasswordHistoryProps) {
                         variant="ghost"
                         size="sm"
                         className={`h-7 px-2 ${isDarkMode
-                                ? 'hover:bg-white/10 text-white/40 hover:text-white/60'
-                                : 'hover:bg-black/10 text-black/40 hover:text-black/60'
+                                ? 'hover:bg-white/10 text-white/60 hover:text-white/60'
+                                : 'hover:bg-black/10 text-black/60 hover:text-black/60'
                             }`}
                     >
                         <Trash2 className="h-3 w-3" />
@@ -94,14 +106,14 @@ export default function PasswordHistory({ isDarkMode }: PasswordHistoryProps) {
                 )}
             </div>
 
-            <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar">
+            <div className="custom-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto">
                 <AnimatePresence mode="popLayout">
                     {history.length === 0 ? (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className={`text-center py-8 text-xs ${isDarkMode ? 'text-white/30' : 'text-black/30'
+                            className={`text-center py-8 text-xs ${isDarkMode ? 'text-white/60' : 'text-black/60'
                                 }`}
                         >
                             No history yet
@@ -129,7 +141,7 @@ export default function PasswordHistory({ isDarkMode }: PasswordHistoryProps) {
                                             }`}>
                                             {item.password}
                                         </div>
-                                        <div className={`flex items-center gap-2 mt-1 text-[10px] ${isDarkMode ? 'text-white/40' : 'text-black/40'
+                                        <div className={`flex items-center gap-2 mt-1 text-[10px] ${isDarkMode ? 'text-white/60' : 'text-black/60'
                                             }`}>
                                             <Clock className="h-2.5 w-2.5" />
                                             {formatTime(item.timestamp)}
@@ -161,7 +173,7 @@ export default function PasswordHistory({ isDarkMode }: PasswordHistoryProps) {
                 </AnimatePresence>
             </div>
 
-            <div className={`mt-4 pt-4 border-t text-[10px] ${isDarkMode ? 'border-white/10 text-white/30' : 'border-black/10 text-black/30'
+            <div className={`mt-4 pt-4 border-t text-[10px] ${isDarkMode ? 'border-white/10 text-white/60' : 'border-black/10 text-black/60'
                 }`}>
                 Encrypted locally • Auto-expires in 24h
             </div>

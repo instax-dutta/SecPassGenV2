@@ -20,7 +20,7 @@ First-party UI. Everything a visitor sees and touches.
 - `PasswordHistory` renders nothing when `isHistoryAvailable()` returns false, so browsers lacking `crypto.subtle` lose the sidebar silently instead of erroring.
 - The history sidebar is `hidden lg:block`, so below the large breakpoint there is no history UI at all. That is a product gap, not a styling detail.
 
-### The generator mirrors the server floor
+### The generator is the product
 
 `PasswordGenerator` computes `minimumLengthForFlags` from the current checkbox selection and uses it as the slider's `min`, raising the current length when the selection shrinks the alphabet. This exists so the control never offers a configuration the API will refuse with a 400. The floor itself is defined once in `lib/entropy.ts`; the UI must not hardcode 60.
 
@@ -28,7 +28,9 @@ The component also keeps one `SessionDedup` instance in a ref and retries up to 
 
 ### Conventions
 
-- Cards are `rounded-2xl` with `backdrop-blur-xl`, a `bg-white/5` or `bg-black/5` fill, and a `border-white/10` or `border-black/10` border.
+- Cards are `rounded-2xl` with `backdrop-blur-xl` and a hairline `border-white/10` / `border-black/10`. No drop shadows; one card carrying one broke the elevation language.
+- Secondary text sits at 60% ink and notes at 55%. Every text node must clear WCAG AA in both themes; the brass signal is `214 137 62` on black and a darker `143 94 36` on white, because the dark value measures only 2.8:1 on white.
+- One theme control, not a sun/switch/moon row, which reads as three controls for one job.
 - Motion easing is the cubic bezier `[0.16, 1, 0.3, 1]`, with durations between 0.3 and 0.8 seconds.
 
 ## Work Guidance
@@ -40,7 +42,6 @@ The component also keeps one `SessionDedup` instance in a ref and retries up to 
 ### Dead code currently in this directory
 
 - `StrengthMeter.tsx` is not imported anywhere. Delete it or wire it into `PasswordGenerator`.
-- `ExternalLink` and `TrendingUp` are imported but unused in `app/page.tsx`.
 
 `AnimatedBackground.tsx` binds explicitly typed `surface` and `context` aliases for the canvas because TypeScript narrows a `const` inside arrow closures but not inside a class body. Keep that indirection. It also registers a named `onResize` handler and removes that same reference on cleanup; an inline arrow listener cannot be removed and leaked one handler per theme toggle.
 

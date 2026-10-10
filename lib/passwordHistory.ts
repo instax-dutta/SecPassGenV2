@@ -8,6 +8,17 @@ const STORAGE_KEY = 'secpassgen_history';
 const MAX_HISTORY = 10;
 const EXPIRY_HOURS = 24;
 
+/**
+ * Fired whenever the stored history changes, so open views can refresh without
+ * polling and without the generator needing a reference to them.
+ */
+export const HISTORY_CHANGED = 'secpassgen:history-changed';
+
+function announceChange(): void {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent(HISTORY_CHANGED));
+}
+
 export interface PasswordHistoryItem {
     id: string;
     password: string;
@@ -109,6 +120,7 @@ export async function addToHistory(password: string, length: number): Promise<vo
         // Encrypt and store
         const encrypted = await encrypt(JSON.stringify(updatedHistory));
         localStorage.setItem(STORAGE_KEY, JSON.stringify(encrypted));
+        announceChange();
     } catch (error) {
         console.error('Failed to add to history:', error);
     }
@@ -138,6 +150,7 @@ export async function getHistory(): Promise<PasswordHistoryItem[]> {
                 const encrypted = await encrypt(JSON.stringify(validHistory));
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(encrypted));
             }
+            announceChange();
         }
 
         return validHistory;
@@ -152,6 +165,7 @@ export async function getHistory(): Promise<PasswordHistoryItem[]> {
  */
 export function clearHistory(): void {
     localStorage.removeItem(STORAGE_KEY);
+    announceChange();
 }
 
 /**

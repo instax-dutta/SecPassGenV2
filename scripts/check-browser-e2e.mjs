@@ -34,19 +34,24 @@ await page.goto(BASE, { waitUntil: 'networkidle' })
 
 const button = page.getByRole('button', { name: 'Generate Password' })
 ok(await button.count() === 1, 'the Generate Password button is not present exactly once')
-ok(await page.getByText('Generate a password to begin').count() === 1,
+ok(await page.getByText('Press generate to draw one').count() === 1,
   'the empty state should invite the user to generate')
 
 const slider = page.locator('[role=slider]').first()
-const shownLength = async () => parseInt(await page.locator('span.font-bold').first().innerText(), 10)
+// read the length off the slider's own value rather than a CSS class, so a
+// layout change cannot silently break this check
+const shownLength = async () => parseInt(await slider.getAttribute('aria-valuenow'), 10)
 
 // --- the floor is mirrored into the slider ---------------------------------
 // All four classes is a 90 symbol alphabet, so the floor lands on 10.
 const minWithAll = await slider.getAttribute('aria-valuemin')
 ok(minWithAll === '10', `with all four character types the slider floor should be 10, got ${minWithAll}`)
 
-const floorHint = await page.locator('text=/^Minimum \\d+ characters/').first().innerText()
-ok(/Minimum 10 characters/.test(floorHint), `the floor hint is wrong: ${floorHint}`)
+// The guarantee is stated as a derivation the reader can check, so the copy
+// carries the alphabet size as well as the floor.
+const floorHint = await page.locator('text=/characters from a \\d+-symbol alphabet/').first().innerText()
+ok(/16 characters from a 90-symbol alphabet/.test(floorHint), `the derivation must expose the alphabet size, got: ${floorHint}`)
+ok(/60-bit floor/.test(floorHint), `the derivation must still name the enforced floor, got: ${floorHint}`)
 
 // --- clicking actually produces a password ---------------------------------
 await button.click()
@@ -75,7 +80,7 @@ ok(seen.size === 12, `12 generations produced only ${seen.size} distinct passwor
 
 // --- narrowing the alphabet raises the floor and re-clamps the slider ------
 // Digits plus mixed case is a 62 symbol alphabet, so the floor becomes 11.
-const symbols = page.getByText('Symbols', { exact: true }).first()
+const symbols = page.getByRole('checkbox', { name: 'Symbols' })
 if (await symbols.count() === 1) {
   await symbols.click()
   await page.waitForTimeout(500)
@@ -93,7 +98,7 @@ if (await symbols.count() === 1) {
 
 // --- digits only should demand 19 characters -------------------------------
 for (const label of ['Uppercase', 'Lowercase']) {
-  const el = page.getByText(label, { exact: true }).first()
+  const el = page.getByRole('checkbox', { name: label })
   if (await el.count() === 1) { await el.click(); await page.waitForTimeout(250) }
 }
 const minDigits = await slider.getAttribute('aria-valuemin')
