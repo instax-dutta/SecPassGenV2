@@ -17,7 +17,7 @@ Scope: remove the database and every server-side artifact, so passwords are gene
 - [x] G2: character selection is uniform by construction, rejects the biased residue range, and no unconditional modulo indexing survives in the source
   CHECK: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-random-sampling.mjs
   EXPECT: RANDOM SAMPLING VERIFIED
-  EVIDENCE: automatic-evidence=v1; definition-sha256=60c1d72cc5ceff0efac03a761c13c8d2813bb80807a592b7a7e460dc7402174c; exit=0; EXPECT=matched; output-sha256=5db7e0e219afbf922e0d033267d6902afe50c5633ccb55e87ae48bc41498ff6c; output-bytes=107; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
+  EVIDENCE: automatic-evidence=v1; definition-sha256=60c1d72cc5ceff0efac03a761c13c8d2813bb80807a592b7a7e460dc7402174c; exit=0; EXPECT=matched; output-sha256=6c520dadffa270d4ff30ce75988ca799c576821362a15fa1b99f5d64a23e72e0; output-bytes=107; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
 
 - [x] G3: a password already shown this session is refused, and the resident set never exceeds its cap
   CHECK: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-session-dedup.mjs
@@ -27,12 +27,12 @@ Scope: remove the database and every server-side artifact, so passwords are gene
 - [x] G4: the app has no server-side state, and every detector in that check fires against a fixture holding what was removed
   CHECK: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-no-server-state.mjs
   EXPECT: NO SERVER STATE VERIFIED
-  EVIDENCE: automatic-evidence=v1; definition-sha256=83cb3e664d2a6b3cf97047d1bb74e16bc6b809114b976871ab3ca5c501966fa0; exit=0; EXPECT=matched; output-sha256=2c834d7b1f5716744dc52de8f608395dec6bab52530d813cc1d6de5b40a5b048; output-bytes=97; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
+  EVIDENCE: automatic-evidence=v1; definition-sha256=83cb3e664d2a6b3cf97047d1bb74e16bc6b809114b976871ab3ca5c501966fa0; exit=0; EXPECT=matched; output-sha256=bade09af120f5f92fba68c3f1f64464cfd845dad4996f5ffa4d407ed42b7f1b5; output-bytes=97; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
 
 - [x] G5: passwords are produced in the browser, and no component or library can reach the network
   CHECK: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-generation-is-local.mjs
   EXPECT: GENERATION IS LOCAL VERIFIED
-  EVIDENCE: automatic-evidence=v1; definition-sha256=9045e5c62532b0bb8003b73fe13afc6dce42504368b9ed98a95510773ff30a5f; exit=0; EXPECT=matched; output-sha256=7a919486441a9b0c75b71c9a7460665985561ab1324a0c26b0cf5014768e77d4; output-bytes=96; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
+  EVIDENCE: automatic-evidence=v1; definition-sha256=9045e5c62532b0bb8003b73fe13afc6dce42504368b9ed98a95510773ff30a5f; exit=0; EXPECT=matched; output-sha256=3d8990327db4ab206b61a2559a7dfaac01ee2288315ab7998b08673cd339f2f8; output-bytes=96; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
 
 - [x] G6: the project type-checks with no errors
   CHECK: npx tsc --noEmit && echo TYPECHECK CLEAN
@@ -47,7 +47,7 @@ Scope: remove the database and every server-side artifact, so passwords are gene
 - [x] G8: the production build succeeds with every former database variable absent from the environment
   CHECK: env -u DATABASE_URL -u UNIQUENESS_SECRET -u IP_PEPPER -u IP_SALT npm run build && echo BUILD WITHOUT SECRETS CLEAN
   EXPECT: BUILD WITHOUT SECRETS CLEAN
-  EVIDENCE: automatic-evidence=v1; definition-sha256=a37ea6c3c883c460ca6236e7edbb4efcccb2f0785177f2093ee5ef3133ee0797; exit=0; EXPECT=matched; output-sha256=b1cfe082def6f9b9cadb6e79669caca25d0a93035e1fb5877ac6c407b0eca219; output-bytes=1272; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
+  EVIDENCE: automatic-evidence=v1; definition-sha256=a37ea6c3c883c460ca6236e7edbb4efcccb2f0785177f2093ee5ef3133ee0797; exit=0; EXPECT=matched; output-sha256=7c8b7572aaea3948e7be4d9633a056a6eb65d2d0d1172b247da09573a12fb0f8; output-bytes=1512; shell=/bin/sh; cwd=/Users/saiduttaabhishekdash/SecPassGenV2; path=b93c3fbfaca3/30 entries
 
 - [x] G10: a real browser, driving the live site, produces distinct passwords that match the on-screen controls and never leave the page
   CHECK: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-browser-e2e.mjs

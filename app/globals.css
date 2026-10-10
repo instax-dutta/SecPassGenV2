@@ -166,27 +166,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Lenis smooth scroll */
-html.lenis {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto;
-}
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-
-.lenis.lenis-stopped {
-  overflow: hidden;
-}
-
-.lenis.lenis-scrolling iframe {
-  pointer-events: none;
-}
-
 /* Custom scrollbar for history */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;

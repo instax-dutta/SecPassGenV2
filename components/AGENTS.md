@@ -18,7 +18,9 @@ First-party UI. Everything a visitor sees and touches.
 - It re-checks `meetsEntropyFloor` locally before drawing, so the guard holds even if the slider is bypassed.
 - It pushes every password it accepts into the encrypted history via `addToHistory`.
 - `PasswordHistory` renders nothing when `isHistoryAvailable()` returns false, so browsers lacking `crypto.subtle` lose the sidebar silently instead of erroring.
-- The history sidebar is `hidden lg:block`, so below the large breakpoint there is no history UI at all. That is a product gap, not a styling detail.
+- History is available at every viewport. The sidebar used to be `hidden lg:block`, which meant a phone user generated a password with no Recent panel at all; now the page scrolls below `lg` and the panel stacks in.
+- `app/page.tsx` is viewport-locked only from `lg` up (`lg:h-screen lg:overflow-hidden`). On narrow screens it scrolls. Keep that split: locking mobile killed the history panel.
+- Lenis is gone. It ran a requestAnimationFrame loop for a page that had `overflow-hidden`, so it did nothing but burn frame budget, and it would have hijacked native scrolling on mobile.
 
 ### The generator is the product
 

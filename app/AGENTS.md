@@ -14,7 +14,7 @@ The App Router surface: the HTML shell, published metadata, crawler-facing route
 
 ### Metadata is owned by `layout.tsx`
 
-`app/layout.tsx` is the single source for the document head: `metadataBase`, the `%s | SecPassGen Pro` title template, OpenGraph and Twitter cards, robots directives, icon set, manifest link, and the JSON-LD `WebApplication` block injected into `<head>`.
+`app/layout.tsx` is the single source for the document head: `metadataBase`, the `%s | SecPassGen` title template, OpenGraph and Twitter cards, robots directives, icon set, manifest link, and the JSON-LD `WebApplication` block injected into `<head>`.
 
 - `APP_DESCRIPTION` is a published product claim. Changing generation, storage, or network behaviour means changing it in the same commit.
 - Page-level `metadata` exports must not contradict the layout defaults.

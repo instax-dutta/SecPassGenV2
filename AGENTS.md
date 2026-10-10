@@ -5,8 +5,8 @@
 
 ## Project
 
-- **Product**: SecPassGen Pro, a browser-based password generator. Live at `https://passwords.sdad.pro`; parent domain `https://sdad.pro`.
-- **Stack**: Next.js 14 App Router, React 18, TypeScript, Tailwind CSS, Framer Motion, Lenis, Radix UI / shadcn.
+- **Product**: SecPassGen, a browser-based password generator. Live at `https://passwords.sdad.pro`; parent domain `https://sdad.pro`.
+- **Stack**: Next.js 14 App Router, React 18, TypeScript, Tailwind CSS, Framer Motion, Radix UI / shadcn. Lenis was removed: it animated scrolling on a page that did not scroll.
 - **Persistence**: none. Passwords are generated in the browser and never leave the device. There is no database, no API route, and no server-side state.
 - **Install**: `npm install --legacy-peer-deps`
 - **Commands**: `npm run dev`, `npm run build`, `npm run start`, `npm run lint`

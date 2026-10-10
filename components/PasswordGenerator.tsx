@@ -8,7 +8,7 @@ import { Copy, RefreshCw, Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { addToHistory } from '@/lib/passwordHistory'
 import { SessionDedup } from '@/lib/sessionDedup'
-import { MIN_ENTROPY_BITS, MIN_LENGTH, MAX_LENGTH, buildCharset, meetsEntropyFloor, minimumLengthForFlags, totalEntropy } from '@/lib/entropy'
+import { MIN_ENTROPY_BITS, MIN_LENGTH, buildCharset, meetsEntropyFloor, minimumLengthForFlags, totalEntropy } from '@/lib/entropy'
 import { generatePassword } from '@/lib/random'
 import EntropyMeter from './EntropyMeter'
 import CustomCheckbox from './CustomCheckbox'
@@ -118,7 +118,7 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
       }`}
     >
       {/* Readout ------------------------------------------------------ */}
-      <div className="p-5 sm:p-6">
+      <div className="px-5 pb-5 pt-6 sm:px-6 sm:pb-6 sm:pt-7">
         <div className="mb-2.5 flex items-baseline justify-between">
           <span className={`text-[9px] uppercase tracking-[0.18em] ${dim}`}>Your password</span>
           <AnimatePresence>
@@ -146,7 +146,7 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className={`readout flex h-[52px] items-center rounded-lg border border-dashed px-3.5 text-[13px] ${line} ${dim}`}
+                  className={`readout flex h-[72px] items-center rounded-lg border border-dashed px-4 text-[14px] ${line} ${dim}`}
                 >
                   Press generate to draw one
                 </motion.div>
@@ -157,7 +157,7 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                  className={`readout-display flex h-[52px] items-center overflow-x-auto rounded-lg border px-3.5 font-mono text-[15px] sm:text-[17px] leading-none ${line} ${
+                  className={`readout-display flex h-[72px] items-center overflow-x-auto rounded-lg border px-4 font-mono text-[17px] sm:text-[19px] leading-none ${line} ${
                     isDarkMode ? 'bg-white/[0.04] text-white' : 'bg-black/[0.03] text-black'
                   }`}
                 >
@@ -177,7 +177,7 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
             onClick={copy}
             disabled={password === null}
             aria-label="Copy password"
-            className={`h-[52px] w-[52px] shrink-0 rounded-lg border transition-all duration-200 ${
+            className={`h-[72px] w-[72px] shrink-0 rounded-lg border transition-all duration-200 ${
               copied
                 ? 'border-[rgb(var(--signal))] bg-[rgb(var(--signal))] text-black'
                 : password === null
@@ -187,17 +187,17 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
                     : 'border-black/15 bg-transparent text-black/70 hover:border-black/35 hover:bg-black/[0.04] hover:text-black'
             }`}
           >
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
           </Button>
         </div>
       </div>
 
       {/* Action ------------------------------------------------------- */}
-      <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+      <div className="px-5 pb-6 sm:px-6 sm:pb-7">
         <Button
           onClick={generate}
           disabled={isGenerating}
-          className={`h-11 w-full rounded-lg text-[13px] font-medium tracking-wide transition-all duration-200 ${
+          className={`h-[52px] w-full rounded-lg text-[14px] font-medium tracking-wide transition-all duration-200 ${
             isDarkMode ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'
           } disabled:opacity-60`}
         >
@@ -211,8 +211,8 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
       </div>
 
       {/* Instrumentation ----------------------------------------------- */}
-      <div className={`border-t px-5 py-5 sm:px-6 ${line}`}>
-        <div className="mb-4 flex items-end justify-between">
+      <div className={`border-t px-5 py-7 sm:px-6 ${line}`}>
+        <div className="mb-5 flex items-end justify-between">
           <div>
             <div className={`mb-1.5 text-[9px] uppercase tracking-[0.18em] ${dim}`}>Length</div>
             <div className={`readout text-2xl font-medium leading-none ${body}`}>
@@ -243,7 +243,7 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
           <span className="readout">{MAX_LENGTH_UI}</span>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-7">
           <EntropyMeter bits={bits} isDarkMode={isDarkMode} />
           {/* States the derivation so the bits figure can be checked rather
               than taken on faith, and the guarantee in the same breath. */}
@@ -268,7 +268,7 @@ export default function PasswordGenerator({ isDarkMode }: PasswordGeneratorProps
           return (
             <div
               key={group.key}
-              className={`px-3 py-3 ${i > 0 ? `border-l ${line}` : ''}`}
+              className={`px-4 py-4 ${i > 0 ? `border-l ${line}` : ''}`}
             >
               <CustomCheckbox
                 label={group.label}

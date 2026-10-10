@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import Lenis from 'lenis'
 import PasswordGenerator from '../components/PasswordGenerator'
 import PasswordHistory from '../components/PasswordHistory'
 import AssuranceStrip from '../components/AssuranceStrip'
@@ -12,18 +11,6 @@ import Image from 'next/image'
 
 export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(true)
-
-  useEffect(() => {
-    const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) })
-    function raf(time: number) {
-      lenis.raf(time)
-      requestAnimationFrame(raf)
-    }
-    requestAnimationFrame(raf)
-    return () => {
-      lenis.destroy()
-    }
-  }, [])
 
   const bgClass = isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
   const borderClass = isDarkMode ? 'border-white/[0.07]' : 'border-black/[0.07]'
@@ -43,7 +30,7 @@ export default function Home() {
   } as React.CSSProperties
 
   return (
-    <div className={`relative flex h-screen flex-col overflow-hidden ${bgClass}`} style={themeVars}>
+    <div className={`relative flex min-h-screen flex-col ${bgClass} lg:h-screen lg:overflow-hidden`} style={themeVars}>
       {/* Graticule: a surface to read the instrument against, replacing the
           drifting particle field. Decoration that earned nothing here. */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true"
@@ -118,7 +105,7 @@ export default function Home() {
             </div>
           </motion.div>
 
-          <div className="hidden h-full lg:block">
+          <div className="lg:h-full">
             <PasswordHistory isDarkMode={isDarkMode} />
           </div>
         </div>

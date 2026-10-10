@@ -1,5 +1,5 @@
 {
-    "name": "SecPassGen Pro",
+    "name": "SecPassGen",
     "short_name": "SecPassGen",
     "description": "Browser-only password generator. Nothing sent, nothing stored.",
     "start_url": "/",

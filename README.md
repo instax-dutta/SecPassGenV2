@@ -1,4 +1,4 @@
-# SecPassGen Pro 🔐
+# SecPassGen
 
 > **Institutional-grade password security** with guaranteed uniqueness, client-side encryption, and a polished monochrome aesthetic.
 
@@ -64,7 +64,7 @@ AGENTS.md           - Project facts, product invariants, repo-wide workflow
 ## 🎨 Tech Stack
 
 - **Framework:** Next.js 14 (App Router)
-- **Animations:** Framer Motion + Lenis (Smooth Scroll)
+- **Animations:** Framer Motion
 - **Styling:** Tailwind CSS + Radix UI
 - **Security:** Web Crypto API (CSPRNG) + AES-GCM local history
 - **SEO/Metadata:** Next.js Metadata API + JSON-LD

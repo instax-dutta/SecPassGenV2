@@ -79,7 +79,7 @@ export default function PasswordHistory({ isDarkMode }: PasswordHistoryProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className={`flex h-full flex-col rounded-2xl border p-6 backdrop-blur-xl ${isDarkMode
+            className={`flex h-full min-h-[240px] flex-col rounded-2xl border p-6 backdrop-blur-xl ${isDarkMode
                     ? 'bg-black/40 border-white/10'
                     : 'bg-white/60 border-black/10'
                 }`}
